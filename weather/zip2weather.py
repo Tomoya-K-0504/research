@@ -1,6 +1,7 @@
 import re
 import time
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 import const
 import pandas as pd
@@ -161,11 +162,12 @@ def zip2geo(postal):
     res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']
     :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
     """
-    url = 'http://geoapi.heartrails.com/api/json'
-    payload = {'method': 'searchByPostal'}
-    payload['postal'] = postal
+    url = 'http://zip.cgis.biz/xml/zip.php?zn='
 
-    res = requests.get(url, params=payload).json()['response']['location'][0]
+    content = requests.get(f"{url}{postal}").content.decode("utf-8")
+    return content.split("state=")[1].split(())
+    xml = ET.fromstring(content)
+    # res = requests.get(f"{url}{postal}".json()['response']['location'][0]
     print('%s, %s, %s, %s, %s, %s\n' % (res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']))
 
     return res
