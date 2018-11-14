@@ -1,13 +1,14 @@
 import re
+import sys
 import time
+from datetime import timedelta
 from pathlib import Path
-import xml.etree.ElementTree as ET
 
 import const
 import pandas as pd
 import requests
-from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+import logger
 
 
 def access_site(url):
@@ -48,7 +49,10 @@ class JmaScraper:
         :return: None
         """
         pref_code_df = self._load_pref_code()
-        self.prec_no = pref_code_df[pref_code_df["pref"] == self.pref]["code"].values[0]
+        if self.pref == "北海道":  # 北海道のときは、札幌を観測点とするために、札幌がある地域の番号をprec_noとする
+            self.prec_no = 14
+        else:
+            self.prec_no = pref_code_df[pref_code_df["pref"] == self.pref]["code"].values[0]
 
     @staticmethod
     def _fill_block_no(self) -> None:
@@ -162,26 +166,33 @@ def zip2geo(postal):
     res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']
     :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
     """
-    url = 'http://zip.cgis.biz/xml/zip.php?zn='
+    url = 'http://zip.cgis.biz/csv/zip.php?zn='
 
-    content = requests.get(f"{url}{postal}").content.decode("utf-8")
-    return content.split("state=")[1].split(())
-    xml = ET.fromstring(content)
-    # res = requests.get(f"{url}{postal}".json()['response']['location'][0]
-    print('%s, %s, %s, %s, %s, %s\n' % (res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']))
+    # 北海道などは0から郵便番号が始まり、おそらくexcelの仕様的に初めの0を消してしまうので、7桁になるよう0を先頭から埋める
+    content = requests.get(f"{url}{str(postal).zfill(7)}").text
 
-    return res
+    # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
+    # pref_name = content.split("\n")[16].split("state=")[1].split("\"")[1]
+    try:
+        pref_name = content.split("\",\"")[12]
+    except IndexError as e:
+        print(f"{url}{postal}")
+        print(content)
+        print(e)
+        sys.exit()
+
+    return pref_name
 
 
 def zip2weather(postcode, sdate, edate, mode='daily', duration=0):
-    get_data = zip2geo(postcode)
+    pref_name = zip2geo(postcode)
 
     # 日毎では、日付の指定がありdurationを考慮する必要がない.
     if mode == 'daily':
         daily_columns = ["temperature_mean", "temperature_max", "temperature_min", "humidity_mean", "weather_noon",
                          "weather_night"]
-        start_daily_df = JmaScraper(get_data["prefecture"], year=sdate.year, month=sdate.month, day=sdate.day).scrape()
-        end_daily_df = JmaScraper(get_data["prefecture"], year=edate.year, month=edate.month, day=edate.day).scrape()
+        start_daily_df = JmaScraper(pref_name, year=sdate.year, month=sdate.month, day=sdate.day).scrape()
+        end_daily_df = JmaScraper(pref_name, year=edate.year, month=edate.month, day=edate.day).scrape()
 
         # 該当する日付の行を抜き出し、カラム名を変更する
         start_day_series = start_daily_df[start_daily_df["day"] == str(sdate.day)][daily_columns]
@@ -196,7 +207,7 @@ def zip2weather(postcode, sdate, edate, mode='daily', duration=0):
     # dailyでないとき、つまりhourlyのとき
     hourly_df_list = []
     for date in [sdate, edate]:
-        jma_scraper = JmaScraper(get_data["prefecture"], year=date.year, month=date.month, day=date.day)
+        jma_scraper = JmaScraper(pref_name, year=date.year, month=date.month, day=date.day)
         hourly_df = pd.DataFrame()
 
         for i in range(duration*-1, duration+1):
@@ -211,14 +222,21 @@ def zip2weather(postcode, sdate, edate, mode='daily', duration=0):
 
 if __name__ == "__main__":
 
-    source_df = pd.read_excel("zip20181105.xlsx")
+    excel_name = sys.argv[1]
+
+    source_df = pd.read_excel(excel_name)
     aggregated_df = pd.DataFrame()
 
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
+
         save_folder = Path("weather_data") / row["folder"]
         save_folder.mkdir(exist_ok=True)
-        pref = row["prefecture"]
+
+        if len(list(save_folder.iterdir())) != 0:
+            continue
+
+        pref = row
         start_df, end_df = zip2weather(int(row["zip"]), row["sday"], row["eday"], mode='hourly', duration=1)
         start_df.to_csv(save_folder / "start.csv", index=False)
         end_df.to_csv(save_folder / "end.csv", index=False)
