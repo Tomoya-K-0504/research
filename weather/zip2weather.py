@@ -231,7 +231,7 @@ if __name__ == "__main__":
     for i, row in source_df.iterrows():
 
         save_folder = Path("weather_data") / row["folder"]
-        save_folder.mkdir(exist_ok=True)
+        save_folder.mkdir(exist_ok=True, parents=True)
 
         if len(list(save_folder.iterdir())) != 0:
             continue
