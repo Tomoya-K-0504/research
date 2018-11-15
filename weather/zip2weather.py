@@ -244,5 +244,8 @@ if __name__ == "__main__":
         daily_df = zip2weather(int(row["zip"]), row["sday"], row["eday"], mode='daily')
         aggregated_df = pd.concat([aggregated_df, daily_df], axis=0)
 
+        if i % 100 == 0:
+            print(f"{i} data finished")
+
     aggregated_df = pd.concat([source_df, aggregated_df.reset_index(drop=True)], axis=1)
     pass
