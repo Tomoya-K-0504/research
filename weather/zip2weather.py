@@ -182,7 +182,13 @@ def zip2geo1(postal):
         # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
         pref_name = content.split("\",\"")[12]
     except requests.exceptions.ConnectionError as e:
-        pref_name = zip2geo_api2(postal)
+        print(e)
+        try:
+            pref_name = zip2geo_api2(postal)
+        except TypeError as te:
+            print(te)
+            time.sleep(1800)
+            pref_name = zip2geo1(postal)
 
     return pref_name
 
@@ -232,6 +238,8 @@ if __name__ == "__main__":
     source_df = pd.read_excel(excel_name)
     aggregated_df = pd.DataFrame()
 
+    if i % 100 == 0:
+        print(f"{i} data finished")
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
 
