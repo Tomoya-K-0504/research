@@ -1,6 +1,7 @@
 import re
 import sys
 import time
+import json
 from datetime import timedelta
 from pathlib import Path
 
@@ -159,7 +160,14 @@ class JmaScraper:
         return df
 
 
-def zip2geo(postal):
+def zip2geo_api2(postal):
+    url = "http://zipcloud.ibsnet.co.jp/api/search?zipcode="
+
+    content = json.loads(requests.get(f"{url}{str(postal).zfill(7)}").text)
+    return content["results"][0]["address1"]
+
+
+def zip2geo1(postal):
     """
 
     :param postal:
@@ -169,23 +177,19 @@ def zip2geo(postal):
     url = 'http://zip.cgis.biz/csv/zip.php?zn='
 
     # 北海道などは0から郵便番号が始まり、おそらくexcelの仕様的に初めの0を消してしまうので、7桁になるよう0を先頭から埋める
-    content = requests.get(f"{url}{str(postal).zfill(7)}").text
-
-    # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
-    # pref_name = content.split("\n")[16].split("state=")[1].split("\"")[1]
     try:
+        content = requests.get(f"{url}{str(postal).zfill(7)}").text
+        # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
         pref_name = content.split("\",\"")[12]
-    except IndexError as e:
-        print(f"{url}{postal}")
-        print(content)
-        print(e)
-        sys.exit()
+    except requests.exceptions.ConnectionError as e:
+        pref_name = zip2geo_api2(postal)
 
     return pref_name
 
 
 def zip2weather(postcode, sdate, edate, mode='daily', duration=0):
-    pref_name = zip2geo(postcode)
+    # pref_name = zip2geo1(postcode)
+    pref_name = zip2geo_api2(postcode)
 
     # 日毎では、日付の指定がありdurationを考慮する必要がない.
     if mode == 'daily':
@@ -224,6 +228,7 @@ if __name__ == "__main__":
 
     excel_name = sys.argv[1]
 
+    # エクセルデータ
     source_df = pd.read_excel(excel_name)
     aggregated_df = pd.DataFrame()
 
