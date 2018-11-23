@@ -7,6 +7,7 @@ from pathlib import Path
 
 import const
 import pandas as pd
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import logger
@@ -160,42 +161,76 @@ class JmaScraper:
         return df
 
 
-def zip2geo_api2(postal):
-    url = "http://zipcloud.ibsnet.co.jp/api/search?zipcode="
+def zip2geo_api3(postal):
+    url = "http://geoapi.heartrails.com/api/xml?method=searchByPostal&postal="
 
     content = json.loads(requests.get(f"{url}{str(postal).zfill(7)}").text)
     return content["results"][0]["address1"]
 
 
-def zip2geo1(postal):
-    """
+def zip2geo_api2(postal):
+    url = "http://zipcloud.ibsnet.co.jp/api/search?zipcode="
+    _ = f"{url}{str(postal).zfill(7)}"
+    content = json.loads(requests.get(f"{url}{str(postal).zfill(7)}").text)
+    return content["results"][0]["address1"]
 
-    :param postal:
-    res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']
-    :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
-    """
-    url = 'http://zip.cgis.biz/csv/zip.php?zn='
+def zip2geo(postal_list, pref_list):
+    def refer_jp_post(postal):
+        """
 
-    # 北海道などは0から郵便番号が始まり、おそらくexcelの仕様的に初めの0を消してしまうので、7桁になるよう0を先頭から埋める
-    try:
-        content = requests.get(f"{url}{str(postal).zfill(7)}").text
-        # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
-        pref_name = content.split("\",\"")[12]
-    except requests.exceptions.ConnectionError as e:
-        print(e)
-        try:
-            pref_name = zip2geo_api2(postal)
-        except TypeError as te:
-            print(te)
-            time.sleep(1800)
-            pref_name = zip2geo1(postal)
+        :param postal:
+        res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']
+        :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
+        """
+        if postal in postal_list:
+            index = np.where(postal_list == postal)
+        if len(index) == 0:
+            print(f"postcode {postal} is not in jp_post postcode list.")
+            sys.exit(1)
+        _ = pref_list[index]
+        return pref_list[index]
 
-    return pref_name
+    return refer_jp_post
+
+        # 以下は一旦使用しない。多くアクセスすると切られるので。
+        # url = 'http://zip.cgis.biz/csv/zip.php?zn='
+        #
+        # # 北海道などは0から郵便番号が始まり、おそらくexcelの仕様的に初めの0を消してしまうので、7桁になるよう0を先頭から埋める
+        # try:
+        #     content = requests.get(f"{url}{str(postal).zfill(7)}").text
+        #     # decodeした結果がstr型で、xmlでパースがなぜかできなかったので、改行でsplitして県名が入った部分を取り出し、県名のみ切り出す
+        #     pref_name = content.split("\",\"")[12]
+        # except requests.exceptions.ConnectionError as e:
+        #     print(e)
+        #     try:
+        #         pref_name = zip2geo_api2(postal)
+        #     except TypeError as te:
+        #         print(te)
+        #         time.sleep(1800)
+        #         pref_name = zip2geo1(postal)
 
 
-def zip2weather(postcode, sdate, edate, mode='daily', duration=0):
+def not_on_zipcode_list(source_df):
+    df = pd.read_csv(Path(__file__).parent.resolve() / "KEN_ALL.CSV", encoding='shift-jis')
+    postcode_list = list(set(df.iloc[:, 2].values))
+    pref = df.iloc[:, 6]
+
+    source_postcode = list(set(source_df["zip"].fillna(0).astype(int).values))
+
+    with open("not_on_zipcode_list.txt", "w") as f:
+        for one_postcode in source_postcode:
+            if one_postcode not in postcode_list:
+                if one_postcode == 0:
+                    continue
+                f.write(str(one_postcode))
+                f.write("\n")
+    pass
+
+
+def zip2weather(refer_jp_postal, postcode, sdate, edate, mode='daily', duration=0):
     # pref_name = zip2geo1(postcode)
-    pref_name = zip2geo_api2(postcode)
+
+    pref_name = refer_jp_postal(postcode)
 
     # 日毎では、日付の指定がありdurationを考慮する必要がない.
     if mode == 'daily':
@@ -238,8 +273,17 @@ if __name__ == "__main__":
     source_df = pd.read_excel(excel_name)
     aggregated_df = pd.DataFrame()
 
-    if i % 100 == 0:
-        print(f"{i} data finished")
+    # 郵便局の住所に載っていない郵便番号を振り分けるのに使用した。
+    # not_on_zipcode_list(source_df)
+    with open("not_on_zipcode_list.txt") as f:
+        not_on_zipcode_list = f.read().split("\n")[:-1]
+    not_on_zipcode_list = [int(zipcode) for zipcode in not_on_zipcode_list]
+
+    df = pd.read_csv(Path(__file__).parent.resolve() / "KEN_ALL.CSV", encoding='shift-jis')
+    postcode_list = list(set(df.iloc[:, 2].values))
+    pref_list = df.iloc[:, 6].values
+    refer_jp_postal = zip2geo(postcode_list, pref_list)
+
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
 
@@ -249,8 +293,11 @@ if __name__ == "__main__":
         if len(list(save_folder.iterdir())) != 0:
             continue
 
+        if row["zip"] in not_on_zipcode_list:
+            continue
+
         pref = row
-        start_df, end_df = zip2weather(int(row["zip"]), row["sday"], row["eday"], mode='hourly', duration=1)
+        start_df, end_df = zip2weather(refer_jp_postal, int(row["zip"]), row["sday"], row["eday"], mode='hourly', duration=1)
         start_df.to_csv(save_folder / "start.csv", index=False)
         end_df.to_csv(save_folder / "end.csv", index=False)
 
