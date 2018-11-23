@@ -15,7 +15,7 @@ import logger
 
 def access_site(url):
     # スクレイピング先のサーバーに負荷がかかりすぎないよう、0.5秒おく
-    time.sleep(0.5)
+    # time.sleep(0.5)
     html = requests.get(url).content
     soup = BeautifulSoup(html, "lxml")
 
@@ -91,7 +91,7 @@ class JmaScraper:
             columns_dict["pref"] = [point["alt"]]
             _ = pd.DataFrame.from_dict(columns_dict)
             pref_code_df = pd.concat([pref_code_df, pd.DataFrame.from_dict(columns_dict)], axis=0)
-        pref_code_df.to_csv("pref_code.csv")
+        pref_code_df.to_csv("pref_code.csv", index=False)
 
         return pref_code_df
 
@@ -183,11 +183,13 @@ def zip2geo(postal_list, pref_list):
         :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
         """
         if postal in postal_list:
-            index = np.where(postal_list == postal)
-        if len(index) == 0:
+            index = postal_list.index(postal)
+        else:
             print(f"postcode {postal} is not in jp_post postcode list.")
             sys.exit(1)
-        _ = pref_list[index]
+        if len(index) == 0:
+            print(f"postcode {postal} is in jp_post postcode list, but cannot get index")
+            sys.exit(1)
         return pref_list[index]
 
     return refer_jp_post
@@ -293,7 +295,7 @@ if __name__ == "__main__":
         if len(list(save_folder.iterdir())) != 0:
             continue
 
-        if row["zip"] in not_on_zipcode_list:
+        if int(row["zip"]) in not_on_zipcode_list:
             continue
 
         pref = row
@@ -301,7 +303,7 @@ if __name__ == "__main__":
         start_df.to_csv(save_folder / "start.csv", index=False)
         end_df.to_csv(save_folder / "end.csv", index=False)
 
-        daily_df = zip2weather(int(row["zip"]), row["sday"], row["eday"], mode='daily')
+        daily_df = zip2weather(refer_jp_postal, int(row["zip"]), row["sday"], row["eday"], mode='daily')
         aggregated_df = pd.concat([aggregated_df, daily_df], axis=0)
 
         if i % 100 == 0:
