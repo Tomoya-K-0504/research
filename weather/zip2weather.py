@@ -321,7 +321,7 @@ if __name__ == "__main__":
         save_folder.mkdir(exist_ok=True, parents=True)
 
         # フォルダの中身が何か入っている場合
-        if len(list(save_folder.iterdir())) != 0:
+        if pd.isna(row["zip"]) or len(list(save_folder.iterdir())) != 0:
             continue
 
         # 郵便番号が郵便局のリストに載っている場合
@@ -336,7 +336,6 @@ if __name__ == "__main__":
         end_df.to_csv(save_folder / "end.csv", index=False)
 
         # 一日毎の天気を取得
-
         daily_df = zip2weather(pref_name, row["sday"], row["eday"], mode='daily')
         daily_df.to_csv(save_folder / "daily.csv", index=False)
         aggregated_df = pd.concat([aggregated_df, daily_df], axis=0)
