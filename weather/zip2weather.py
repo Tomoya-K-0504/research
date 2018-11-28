@@ -15,7 +15,7 @@ import logger
 
 def access_site(url):
     # スクレイピング先のサーバーに負荷がかかりすぎないよう、0.5秒おく
-    time.sleep(0.5)
+    # time.sleep(0.5)
     html = requests.get(url).content
     soup = BeautifulSoup(html, "lxml")
 
@@ -314,19 +314,19 @@ if __name__ == "__main__":
     pref_list = df.iloc[:, 6].values
 
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
-    for i, row in source_df.iterrows():
+    for i, row in source_df.iloc[::-1, :].iterrows():
+
+        # 元データに郵便番号がはいっていない場合 または 郵便局のデータに載っていないリストに郵便番号が入っている場合
+        if pd.isna(row["zip"]) or int(row["zip"]) in not_on_zipcode_list:
+            continue
+
+        save_folder = Path("weather_data") / row["folder"]
+        # 既にフォルダが作られている かつ フォルダの中身が3つとも入っている場合
+        if save_folder.exists() and len(list(save_folder.iter())) == 3:
+            continue
 
         # 被験者IDでフォルダを作成する.
-        save_folder = Path("weather_data") / row["folder"]
         save_folder.mkdir(exist_ok=True, parents=True)
-
-        # フォルダの中身が何か入っている場合
-        if pd.isna(row["zip"]) or len(list(save_folder.iterdir())) != 0:
-            continue
-
-        # 郵便番号が郵便局のリストに載っている場合
-        if int(row["zip"]) in not_on_zipcode_list:
-            continue
 
         pref_name = refer_jp_post(int(row["zip"]), postcode_list, pref_list)
 
