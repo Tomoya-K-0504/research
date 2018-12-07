@@ -313,16 +313,34 @@ if __name__ == "__main__":
     postcode_list = list(set(df.iloc[:, 2].values))
     pref_list = df.iloc[:, 6].values
 
+    count_2 = 0
+
+    # 既にスクレイプしたファイルリストを読み込む
+    with open(Path("finished_list.txt"), "r") as f:
+        finished_list = f.read().split("\n")[:-1]
+
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
-    for i, row in source_df.iloc[::-1, :].iterrows():
+    for i, row in source_df.iterrows():
+
+        # 既にスクレイプしたファイルリストに含まれていればスキップ
+        # if row["folder"] in finished_list:
+        #     continue
 
         # 元データに郵便番号がはいっていない場合 または 郵便局のデータに載っていないリストに郵便番号が入っている場合
-        if pd.isna(row["zip"]) or int(row["zip"]) in not_on_zipcode_list:
+        if pd.isna(row["zip"]):
             continue
 
-        save_folder = Path("weather_data") / row["folder"]
+        if int(row["zip"]) in not_on_zipcode_list:
+            count_2 += 1
+            # print(count_2)
+            continue
+
+        Path("weather_data").mkdir(exist_ok=True)
+        save_folder = Path("weather_data__") / row["folder"]
         # 既にフォルダが作られている かつ フォルダの中身が3つとも入っている場合
-        if save_folder.exists() and len(list(save_folder.iter())) == 3:
+        if save_folder.exists() and len(list(save_folder.iterdir())) == 3:
+            count_2 += 1
+            # print(count_2)
             continue
 
         # 被験者IDでフォルダを作成する.
@@ -332,12 +350,12 @@ if __name__ == "__main__":
 
         # 1時間毎の天気を取得して保存
         start_df, end_df = zip2weather(pref_name, row["sday"], row["eday"], mode='hourly', duration=1)
-        start_df.to_csv(save_folder / "start.csv", index=False)
-        end_df.to_csv(save_folder / "end.csv", index=False)
+        start_df.to_csv(save_folder / "start.csv", index=False, encoding='shift_jis')
+        end_df.to_csv(save_folder / "end.csv", index=False, encoding='shift_jis')
 
         # 一日毎の天気を取得
         daily_df = zip2weather(pref_name, row["sday"], row["eday"], mode='daily')
-        daily_df.to_csv(save_folder / "daily.csv", index=False)
+        daily_df.to_csv(save_folder / "daily.csv", index=False, encoding='shift_jis')
         aggregated_df = pd.concat([aggregated_df, daily_df], axis=0)
 
         if i % 100 == 0:
