@@ -211,9 +211,28 @@ class JmaScraper:
         return df
 
 
-def refer_jp_post(postal, postal_list, pref_list):
+def zip_api(postal):
     """
-    郵便局が提供しているcsvを使って、郵便番号と都道府県名を取得し、引数に該当する都道府県名を返す
+    apiにアクセスして、郵便番号をキーにして県名を返す
+    :param postal: 郵便番号
+    :return: pref_name
+    """
+    url = "http://zip.cgis.biz/csv/zip.php?zn=" + str(postal).zfill(7)
+    content = requests.get(url).text
+    try:
+        pref_name = content.split("\",\"")[12]
+    except IndexError as e:
+        print(e)
+        print(postal)
+        print(content.split("\",\""))
+        sys.exit()
+    return pref_name
+
+
+def zip2pref(postal, postal_list, pref_list):
+    """
+    郵便局が提供しているcsvを使って、郵便番号と都道府県名を取得し、引数に該当する都道府県名を返す.
+    csvに載っていない場合(事業所の郵便番号等)は、apiにアクセスして取得する.
     :param postal:
     res['postal'], res['prefecture'], res['city'], res['town'], res['y'], res['x']
     :return: 6570805, 兵庫県, 神戸市灘区, 青谷町一丁目, 34.712429, 135.214521
@@ -222,7 +241,7 @@ def refer_jp_post(postal, postal_list, pref_list):
         index = postal_list.index(postal)
     else:
         print(f"postcode {postal} is not in jp_post postcode list.")
-        sys.exit(1)
+        return zip_api(postal)
 
     return pref_list[index]
 
@@ -316,8 +335,11 @@ if __name__ == "__main__":
     count_2 = 0
 
     # 既にスクレイプしたファイルリストを読み込む
-    with open(Path("finished_list.txt"), "r") as f:
-        finished_list = f.read().split("\n")[:-1]
+    if Path("finished_list.txt").exists():
+        with open(Path("finished_list.txt"), "r") as f:
+            finished_list = f.read().split("\n")[:-1]
+
+    Path("weather_data").mkdir(exist_ok=True)
 
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
@@ -326,17 +348,17 @@ if __name__ == "__main__":
         # if row["folder"] in finished_list:
         #     continue
 
-        # 元データに郵便番号がはいっていない場合 または 郵便局のデータに載っていないリストに郵便番号が入っている場合
+        # 元データに郵便番号がはいっていない場合
         if pd.isna(row["zip"]):
             continue
 
-        if int(row["zip"]) in not_on_zipcode_list:
-            count_2 += 1
+        # 郵便局のデータに載っていないリストに郵便番号が入っている場合
+        # if int(row["zip"]) not in not_on_zipcode_list:
+        #     count_2 += 1
             # print(count_2)
-            continue
+            # continue
 
-        Path("weather_data").mkdir(exist_ok=True)
-        save_folder = Path("weather_data__") / row["folder"]
+        save_folder = Path("weather_data") / row["folder"]
         # 既にフォルダが作られている かつ フォルダの中身が3つとも入っている場合
         if save_folder.exists() and len(list(save_folder.iterdir())) == 3:
             count_2 += 1
@@ -346,7 +368,7 @@ if __name__ == "__main__":
         # 被験者IDでフォルダを作成する.
         save_folder.mkdir(exist_ok=True, parents=True)
 
-        pref_name = refer_jp_post(int(row["zip"]), postcode_list, pref_list)
+        pref_name = zip2pref(int(row["zip"]), postcode_list, pref_list)
 
         # 1時間毎の天気を取得して保存
         start_df, end_df = zip2weather(pref_name, row["sday"], row["eday"], mode='hourly', duration=1)
