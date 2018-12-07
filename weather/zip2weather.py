@@ -15,7 +15,7 @@ import logger
 
 def access_site(url):
     # スクレイピング先のサーバーに負荷がかかりすぎないよう、0.5秒おく
-    # time.sleep(0.5)
+    time.sleep(0.5)
     html = requests.get(url).content
     soup = BeautifulSoup(html, "lxml")
 
@@ -283,17 +283,25 @@ def zip2weather(pref_name, sdate, edate, mode='daily', duration=0):
     if mode == 'daily':
         daily_columns = ["temperature_mean", "temperature_max", "temperature_min", "humidity_mean", "weather_noon",
                          "weather_night"]
+        yesterday = sdate - timedelta(days=1)
+        yesterday_df = JmaScraper(pref_name, year=yesterday.year, month=yesterday.month, day=yesterday.day).scrape()
         start_daily_df = JmaScraper(pref_name, year=sdate.year, month=sdate.month, day=sdate.day).scrape()
         end_daily_df = JmaScraper(pref_name, year=edate.year, month=edate.month, day=edate.day).scrape()
 
         # 該当する日付の行を抜き出し、カラム名を変更する
+        yesterday_series = yesterday_df[yesterday_df["day"] == str(yesterday.day)][daily_columns]
+        yesterday_series.columns = [f"p_{col}" for col in yesterday_series.columns]
         start_day_series = start_daily_df[start_daily_df["day"] == str(sdate.day)][daily_columns]
         start_day_series.columns = [f"s_{col}" for col in start_day_series.columns]
         end_day_series = end_daily_df[end_daily_df["day"] == str(edate.day)][daily_columns]
         end_day_series.columns = [f"e_{col}" for col in end_day_series.columns]
 
         # 連結して返す
-        daily_series = pd.concat([start_day_series.reset_index(drop=True), end_day_series.reset_index(drop=True)], axis=1)
+        daily_series = pd.concat([
+            yesterday_series.reset_index(drop=True),
+            start_day_series.reset_index(drop=True),
+            end_day_series.reset_index(drop=True)
+        ], axis=1)
         return daily_series
 
     # dailyでないとき、つまりhourlyのとき
@@ -323,9 +331,9 @@ if __name__ == "__main__":
     # 郵便局の住所に載っていない郵便番号を振り分けるのに使用した。
     # not_on_zipcode_list(source_df)
 
-    with open("not_on_zipcode_list.txt") as f:
-        not_on_zipcode_list = f.read().split("\n")[:-1]
-    not_on_zipcode_list = [int(zipcode) for zipcode in not_on_zipcode_list]
+    # with open("not_on_zipcode_list.txt") as f:
+    #     not_on_zipcode_list = f.read().split("\n")[:-1]
+    # not_on_zipcode_list = [int(zipcode) for zipcode in not_on_zipcode_list]
 
     # 郵便局の郵便番号リストを読み込む
     df = pd.read_csv(Path(__file__).parent.resolve() / "KEN_ALL.CSV", encoding='shift-jis')
@@ -335,11 +343,11 @@ if __name__ == "__main__":
     count_2 = 0
 
     # 既にスクレイプしたファイルリストを読み込む
-    if Path("finished_list.txt").exists():
-        with open(Path("finished_list.txt"), "r") as f:
-            finished_list = f.read().split("\n")[:-1]
+    # if Path("finished_list.txt").exists():
+    #     with open(Path("finished_list.txt"), "r") as f:
+    #         finished_list = f.read().split("\n")[:-1]
 
-    Path("weather_data").mkdir(exist_ok=True)
+    Path("tmp").mkdir(exist_ok=True)
 
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
@@ -358,7 +366,7 @@ if __name__ == "__main__":
             # print(count_2)
             # continue
 
-        save_folder = Path("weather_data") / row["folder"]
+        save_folder = Path("tmp") / row["folder"]
         # 既にフォルダが作られている かつ フォルダの中身が3つとも入っている場合
         if save_folder.exists() and len(list(save_folder.iterdir())) == 3:
             count_2 += 1
