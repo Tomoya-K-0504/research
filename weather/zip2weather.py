@@ -213,7 +213,7 @@ class JmaScraper:
 
 def zip_api(postal):
     """
-    apiにアクセスして、郵便番号をキーにして県名を返す
+    apiにアクセスして、郵便番号をキーにして県名を返す. 取得に失敗した場合はNaneを返す
     :param postal: 郵便番号
     :return: pref_name
     """
@@ -225,7 +225,7 @@ def zip_api(postal):
         print(e)
         print(postal)
         print(content.split("\",\""))
-        sys.exit()
+        return None
     return pref_name
 
 
@@ -377,6 +377,11 @@ if __name__ == "__main__":
         save_folder.mkdir(exist_ok=True, parents=True)
 
         pref_name = zip2pref(int(row["zip"]), postcode_list, pref_list)
+
+        # apiを使ってもpref_nameの取得に失敗した場合、失敗リストファイルにidとzipcodeを書き込む
+        if not pref_name:
+            with open("failure_list.txt") as f:
+                f.write(row["folder"] + "," + row["zip"] + "\n")
 
         # 1時間毎の天気を取得して保存
         start_df, end_df = zip2weather(pref_name, row["sday"], row["eday"], mode='hourly', duration=1)
