@@ -67,6 +67,7 @@ class Jitai(ABC):
 if __name__ == "__main__":
     logger = logger_file.logger(const.LOG_DIR)
     jitai = Jitai(const.MACHINE_ID, logger)
+    jitai()
     if jitai.check_ema_updates():
         jitai()
 
