@@ -15,7 +15,7 @@ import logger
 
 def access_site(url):
     # スクレイピング先のサーバーに負荷がかかりすぎないよう、0.5秒おく
-    time.sleep(0.5)
+#    time.sleep(0.5)
     html = requests.get(url).content
     soup = BeautifulSoup(html, "lxml")
 
@@ -349,6 +349,8 @@ if __name__ == "__main__":
 
     Path("tmp").mkdir(exist_ok=True)
 
+    pref_dict = {"7611400": "香川県", "791561": "北海道", "4280021": "静岡県", "5203243": "滋賀県", "5010801": "岐阜県", "4618701": "愛知県"}
+
     # 各データごとに、開始日の天気と終了日の天気をスクレイピングする
     for i, row in source_df.iterrows():
 
@@ -358,6 +360,8 @@ if __name__ == "__main__":
 
         # 元データに郵便番号がはいっていない場合
         if pd.isna(row["zip"]):
+            with open("failure_list.txt", "a") as f:
+                f.write(str(row["folder"]) + "," + str(row["zip"]) + "\n")
             continue
 
         # 郵便局のデータに載っていないリストに郵便番号が入っている場合
@@ -380,8 +384,7 @@ if __name__ == "__main__":
 
         # apiを使ってもpref_nameの取得に失敗した場合、失敗リストファイルにidとzipcodeを書き込む
         if not pref_name:
-            with open("failure_list.txt") as f:
-                f.write(row["folder"] + "," + row["zip"] + "\n")
+            pref_name = pref_dict[str(int(row["zip"]))]
 
         # 1時間毎の天気を取得して保存
         start_df, end_df = zip2weather(pref_name, row["sday"], row["eday"], mode='hourly', duration=1)
