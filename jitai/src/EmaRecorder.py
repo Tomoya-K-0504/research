@@ -18,11 +18,28 @@ from jitai.src.Logic import Logic
 
 
 class EmaRecorder:
-    def __init__(self, logger):
+    """
+    回答完了、中断、時間切れそれぞれでデータがないものは、空のdataframeが返る.
+    """
+    def __init__(self, logger, data_path):
         self.logger = logger
+        self.data_path = data_path
 
     def __call__(self, *args, **kwargs):
         return self._arrange_df()
+
+    def _list_to_df(self, df_list, csv_name, save=True):
+        if len(df_list):
+            df = pd.concat(df_list, axis=0)
+            # timeout以外のとき
+            if csv_name in ["answer", "interrupt"]:
+                df = df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
+            if save:
+                df.to_csv(self.data_path / f"{csv_name}_df.csv")
+        else:
+            df = pd.DataFrame()
+
+        return df
 
     def _arrange_df(self):
         self.logger.info("ema recording started")
@@ -30,6 +47,10 @@ class EmaRecorder:
         # TODO 期間の指定
         url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["ema"] / const.MACHINE_ID / "csv"
         content = access_api(self.logger, "http://" + str(url))
+
+        # データが一つもない場合
+        if len(content) == 0:
+            return (pd.DataFrame(), ) * 3
 
         content_lines = content.split("\n")[:-1]
 
@@ -69,12 +90,9 @@ class EmaRecorder:
             else:
                 continue
 
-        answer_df = pd.concat(answer_list, axis=0)
-        interrupt_df = pd.concat(interrupt_list, axis=0)
-        timeout_df = pd.concat(timeout_list, axis=0)
-
-        answer_df = answer_df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
-        interrupt_df = interrupt_df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
+        answer_df = self._list_to_df(answer_list, "answer")
+        interrupt_df = self._list_to_df(interrupt_list, "interrupt")
+        timeout_df = self._list_to_df(timeout_list, "timeout")
 
         return answer_df, interrupt_df, timeout_df
 

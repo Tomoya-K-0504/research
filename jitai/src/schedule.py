@@ -39,31 +39,6 @@ def schedule():
             break
 
 
-def monitor_ema(logger):
-    ema_recorder = EmaRecorder(logger)
-
-    # 一回目のとき
-    if "previous_data_len" not in locals():
-        answer_df, interrupt_df, timeout_df = ema_recorder()
-        previous_data_len = len(answer_df)
-
-    received = not previous_data_len == len(answer_df)
-
-    # emaが回答されるまで待機
-    while not received:
-        time_to_sleep = 3
-        time.sleep(time_to_sleep)
-
-        answer_df, interrupt_df, timeout_df = ema_recorder()
-        received = not previous_data_len == len(answer_df)
-
-        logger.info(f"monitoring continued.. sleeping {time_to_sleep} seconds")
-
-    logger.info("received ema.")
-
-    return received
-
-
 def control(logger):
 
     # 例
@@ -75,9 +50,10 @@ def control(logger):
     # thread_obj = threading.Thread(target=monitor_ema, args=(logger, ))
     # thread_obj.start()
 
-    received = monitor_ema(logger)
-
     jitai = Jitai(const.MACHINE_ID, logger)
+    time_to_sleep = 3
+    while not jitai.check_ema_updates():
+        time.sleep(time_to_sleep)
     jitai()
 
 

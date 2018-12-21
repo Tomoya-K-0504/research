@@ -2,6 +2,7 @@ from pathlib import Path
 
 PJ_ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = PJ_ROOT / "logs"
+DATA_DIR = PJ_ROOT / "data"
 
 BASE_URL = "osaka1.behi-lab.com"
 API_URL = "api/v1"
