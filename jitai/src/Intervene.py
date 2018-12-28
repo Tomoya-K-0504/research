@@ -1,9 +1,9 @@
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from jitai.config import const
+from config import const
 from jitai.src.utils import access_api
-from jitai.config import logger as logger_file
+from config import logger as logger_file
 
 
 class Intervene:

@@ -6,14 +6,14 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
-from jitai.config import const
+from config import const
 import pandas as pd
 from jitai.src.EmaRecorder import EmaRecorder
 from jitai.src.Jitai import Jitai
 import requests
 from bs4 import BeautifulSoup
 
-from jitai.config import logger as logger_file
+from config import logger as logger_file
 from jitai.src.utils import access_api, get_token
 # 参考サイト→http://www.bokupy.com/detail/63#time_schedule-wait
 
