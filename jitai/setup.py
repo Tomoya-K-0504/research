@@ -1,0 +1,12 @@
+from distutils.core import setup
+
+setup(
+    name='jitai',
+    version='0.0.1',
+    description='python program for Just-in-time adaptive intervention',
+    author='Tomoya Koike',
+    author_email='makeffort134@gmail.com',
+    url='https://github.com/Tomoya-K-0504/research/tree/master/jitai',
+    license=license,
+    packages=['jitai/src', 'jitai/config']
+)
