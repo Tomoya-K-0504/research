@@ -87,7 +87,7 @@ if __name__ == "__main__":
     for id in const.MACHINE_IDS.values():
         jitai = Jitai(id, logger)
         if jitai.check_ema_updates():
-            logger.info("machine id: {} will be intervened.")
+            logger.info("machine id: {} will be intervened.".format(jitai.user.terminal_id))
             jitai()
         # 保存されたEMAがある場合、最新EMA時間の保存
         if Path(const.DATA_DIR / jitai.user.terminal_id / "answer.csv").exists():
