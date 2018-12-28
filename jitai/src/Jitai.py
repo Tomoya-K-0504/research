@@ -5,7 +5,7 @@ import re
 import sys
 import time
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from jitai.config import const
@@ -25,22 +25,21 @@ class Jitai(ABC):
     def __init__(self, terminal_id, logger):
         self.user = User(terminal_id)
         self.logger = logger
-        self.data_dir = Path(const.DATA_DIR) / str(self.user.user_id)
-        self.ema_recorder = EmaRecorder(self.logger, self.data_dir)
+        self.data_dir = Path(const.DATA_DIR) / self.user.terminal_id
+        self.data_dir.mkdir(exist_ok=True, parents=True)
+        self.ema_recorder = EmaRecorder(self.logger, self.user)
 
-        self.previous_data_len = 0
+        self.prev_ema_date = self._load_prev_ema_date()   # 前のEMAがないときは空文字
 
     # @abstractmethod
     # def hoge(self):
     #     pass
 
     def __call__(self, *args, **kwargs):
-        self.data_dir.mkdir(exist_ok=True, parents=True)
-        ema_recorder = EmaRecorder(self.logger, self.data_dir)
         logic = Logic(self.logger)
-        intervene = Intervene(self.logger)
+        intervene = Intervene(self.logger, self.user)
 
-        answer_df, interrupt_df, timeout_df = ema_recorder()
+        answer_df, interrupt_df, timeout_df = self.ema_recorder()
 
         message_label = logic(answer_df, interrupt_df)
 
@@ -49,25 +48,49 @@ class Jitai(ABC):
 
         intervene(message_label, token)
 
-    def check_ema_updates(self):
-        answer_df, interrupt_df, timeout_df = self.ema_recorder()
+    def _load_prev_ema_date(self):
+        path = Path(const.DATA_DIR / self.user.terminal_id / "prev_ema_date.txt")
+        if path.exists():
+            with open(path, "r") as f:
+                return datetime.strptime(f.read().split("\n")[-2], '%Y%m%d%H%M%S')
+        else:
+            # 一回目は30日分をとってくる
+            return datetime.today() - timedelta(days=30)
 
-        # 一回目のとき
-        if self.previous_data_len == 0:
-            self.previous_data_len = len(answer_df)
+    def check_ema_updates(self):
+
+        # 前回の更新分をとってくる
+        if Path(const.DATA_DIR / self.user.terminal_id / "answer.csv").exists():
+            df = pd.read_csv(const.DATA_DIR / self.user.terminal_id / "answer.csv", index_col=0)
+        else:
+            df = pd.DataFrame()
+
+        # 今回の更新分をとってくる
+        answer_df, interrupt_df, timeout_df = self.ema_recorder(self.prev_ema_date.date().strftime('%Y%m%d'), datetime.today().date().strftime('%Y%m%d'), save_df=True)
+
+        # dfもanswer_dfもEmptyな場合は、EMAを一度も行っていないとき
+        if not (len(df) or len(answer_df)):
             return False
 
-        received = not self.previous_data_len == len(answer_df)
+        # prev_ema_dateの更新
+        if len(answer_df):
+            self.prev_ema_date = datetime.strptime(answer_df["end"].values[-1], '%Y/%m/%d %H:%M:%S.%f')
 
-        self.previous_data_len = len(answer_df)
+        # TODO 時間まで指定できるようになったらこれでよい
+        # return bool(len(answer_df))
 
-        return received
+        return bool(len(answer_df) - len(df))
 
 
 if __name__ == "__main__":
     logger = logger_file.logger(const.LOG_DIR)
-    jitai = Jitai(const.MACHINE_ID, logger)
-    jitai()
-    if jitai.check_ema_updates():
-        jitai()
+    for id in const.MACHINE_IDS.values():
+        jitai = Jitai(id, logger)
+        if jitai.check_ema_updates():
+            logger.info("machine id: {} will be intervened.")
+            jitai()
+        # 保存されたEMAがある場合、最新EMA時間の保存
+        if Path(const.DATA_DIR / jitai.user.terminal_id / "answer.csv").exists():
+            with open(Path(const.DATA_DIR / jitai.user.terminal_id / "prev_ema_date.txt"), "w") as f:
+                f.write(jitai.prev_ema_date.strftime('%Y%m%d%H%M%S') + "\n")
 
