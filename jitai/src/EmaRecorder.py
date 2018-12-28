@@ -21,21 +21,28 @@ class EmaRecorder:
     """
     回答完了、中断、時間切れそれぞれでデータがないものは、空のdataframeが返る.
     """
-    def __init__(self, logger, data_path):
+    def __init__(self, logger, user):
         self.logger = logger
-        self.data_path = data_path
+        self.user = user
+        self.data_dir = Path(const.DATA_DIR) / self.user.terminal_id
+        self.from_date = ""
+        self.to_date = ""
+        self.save_df = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, from_date="", to_date="", save_df=False, *args, **kwargs):
+        self.from_date = from_date
+        self.to_date = to_date
+        self.save_df = save_df
         return self._arrange_df()
 
-    def _list_to_df(self, df_list, csv_name, save=True):
+    def _list_to_df(self, df_list, csv_name):
         if len(df_list):
             df = pd.concat(df_list, axis=0)
             # timeout以外のとき
             if csv_name in ["answer", "interrupt"]:
                 df = df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
-            if save:
-                df.to_csv(self.data_path / f"{csv_name}_df.csv")
+            if self.save_df:
+                df.to_csv(self.data_dir / f"{csv_name}.csv")
         else:
             df = pd.DataFrame()
 
@@ -44,12 +51,13 @@ class EmaRecorder:
     def _arrange_df(self):
         self.logger.info("ema recording started")
 
-        # TODO 期間の指定
-        url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["ema"] / const.MACHINE_ID / "csv"
+        # fromとtoが空欄だと全件取ってくる
+        duration = "from=" + self.from_date + "&to=" + self.to_date
+        url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["ema"] / self.user.terminal_id / str("csv?"+duration)
         content = access_api(self.logger, "http://" + str(url))
 
         # データが一つもない場合
-        if len(content) == 0:
+        if len(content) < 10:
             return (pd.DataFrame(), ) * 3
 
         content_lines = content.split("\n")[:-1]

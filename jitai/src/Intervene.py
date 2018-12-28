@@ -6,8 +6,9 @@ from jitai.config import logger as logger_file
 
 
 class Intervene:
-    def __init__(self, logger):
+    def __init__(self, logger, user):
         self.logger = logger
+        self.user = user
 
     def _body_json(self, title, body, delivery="now", popup=1, vibration=0):
         return {
@@ -26,7 +27,7 @@ class Intervene:
         header["Authorization"] = "Bearer: " + token
 
         payload = self._body_json(const.INTERRUPT_MSG[message_label]["title"], const.INTERRUPT_MSG[message_label]["body"])
-        url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["interrupt"] / const.MACHINE_ID
+        url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["interrupt"] / self.user.terminal_id
         res = access_api(self.logger, "https://" + str(url), method="post", headers=const.HEADERS, data=payload)
 
         self.logger.info(res)
