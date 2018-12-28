@@ -1,7 +1,10 @@
 .idea
 
-jitai/data/*
-jitai/config/const.py
+/jitai/data/*
+!/jitai/data/__init__.py
+/jitai/logs/*
+!/jitai/logs/__init__.py
+/jitai/config/const.py
 
 weather/weather_data_
 weather/weather_data
