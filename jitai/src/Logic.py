@@ -2,6 +2,7 @@ from datetime import *
 import jpholiday
 from jitai.src.JmaScraper import JmaScraper
 from jitai.src.Dams import Dams
+from jitai.src.LivedoorApi import get_weather_info
 
 
 class BaseLogic:
@@ -22,11 +23,9 @@ class Logic:
         index_list = list(set(answer_df.index))
 
         # 土日かつ天気がいい場合、お出かけしましょうのメッセージ
-        # today = datetime.today()
-        # today_weather_df = JmaScraper("大阪府", year=today.year, month=today.month, day=today.day).scrape()
-        # _ = today_weather_df[today_weather_df["day"].astype(int) == today.day-2]["weather_noon"].values[0]
-        # if (datetime.weekday(today) >= 4 or jpholiday.is_holiday_name(today.date())) and "晴" in today_weather_df[today_weather_df["day"].astype(int) == today.day-2]["weather_noon"].values[0]:
-        #     return "off_day_go_outside"
+        weather = get_weather_info("神戸")
+        if "晴" in weather or "曇" in weather:
+            return "off_day_go_outside"
 
         # DAMSによる心理状態の把握
         answer_df["ema_id"] = answer_df.index

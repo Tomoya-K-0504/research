@@ -86,7 +86,6 @@ if __name__ == "__main__":
     logger = logger_file.logger(const.LOG_DIR)
     for id in const.MACHINE_IDS.values():
         jitai = Jitai(id, logger)
-        jitai()
         if jitai.check_ema_updates():
             logger.info("machine id: {} will be intervened.".format(jitai.user.terminal_id))
             jitai()
