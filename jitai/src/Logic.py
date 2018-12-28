@@ -24,7 +24,8 @@ class Logic:
 
         # 土日かつ天気がいい場合、お出かけしましょうのメッセージ
         weather = get_weather_info("神戸")
-        if "晴" in weather or "曇" in weather:
+        today = datetime.today()
+        if (datetime.weekday(today) >= 4 or jpholiday.is_holiday_name(today.date())) and "晴" in weather or "曇" in weather:
             return "off_day_go_outside"
 
         # DAMSによる心理状態の把握
