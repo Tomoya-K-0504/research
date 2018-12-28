@@ -22,6 +22,12 @@ class Intervene:
         }
 
     def __call__(self, message_label, token, *args, **kwargs):
+
+        # その人の状態に合わせて声掛けを行う. 何時頃どんな生活とかわかってれば.
+        # 加速度が取れれば、睡眠してるとか運動してるとかわかって、EMAを送ったり介入を控えたりできる.
+
+        # TODO 何時間何分後に介入をするかを指定できるように.
+
         # headerを作成する
         header = const.HEADERS
         header["Authorization"] = "Bearer: " + token

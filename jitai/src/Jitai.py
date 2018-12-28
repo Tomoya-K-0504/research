@@ -43,10 +43,11 @@ class Jitai(ABC):
 
         message_label = logic(answer_df, interrupt_df)
 
-        # トークンの取得
-        token = get_token(self.logger)
+        if message_label:
+            # トークンの取得
+            token = get_token(self.logger)
 
-        intervene(message_label, token)
+            intervene(message_label, token)
 
     def _load_prev_ema_date(self):
         path = Path(const.DATA_DIR / self.user.terminal_id / "prev_ema_date.txt")
@@ -60,32 +61,32 @@ class Jitai(ABC):
     def check_ema_updates(self):
 
         # 前回の更新分をとってくる
-        if Path(const.DATA_DIR / self.user.terminal_id / "answer.csv").exists():
-            df = pd.read_csv(const.DATA_DIR / self.user.terminal_id / "answer.csv", index_col=0)
-        else:
-            df = pd.DataFrame()
+        # if Path(const.DATA_DIR / self.user.terminal_id / "answer.csv").exists():
+        #     df = pd.read_csv(const.DATA_DIR / self.user.terminal_id / "answer.csv", index_col=0)
+        # else:
+        #     df = pd.DataFrame()
 
         # 今回の更新分をとってくる
         answer_df, interrupt_df, timeout_df = self.ema_recorder(self.prev_ema_date.date().strftime('%Y%m%d'), datetime.today().date().strftime('%Y%m%d'), save_df=True)
 
-        # dfもanswer_dfもEmptyな場合は、EMAを一度も行っていないとき
-        if not (len(df) or len(answer_df)):
+        # answer_dfがないときとは、初回でかつEMAの記録がないときで、prev_ema_timeとanswer_dfの終了時間が同じときとは、EMAの記録があるが更新がないとき
+        if len(answer_df) == 0 or self.prev_ema_date == datetime.strptime(answer_df["end"].values[-1][:-4], '%Y/%m/%d %H:%M:%S'):
             return False
 
         # prev_ema_dateの更新
-        if len(answer_df):
-            self.prev_ema_date = datetime.strptime(answer_df["end"].values[-1], '%Y/%m/%d %H:%M:%S.%f')
+        self.prev_ema_date = datetime.strptime(answer_df["end"].values[-1][:-4], '%Y/%m/%d %H:%M:%S')
 
         # TODO 時間まで指定できるようになったらこれでよい
         # return bool(len(answer_df))
 
-        return bool(len(answer_df) - len(df))
+        return True
 
 
 if __name__ == "__main__":
     logger = logger_file.logger(const.LOG_DIR)
     for id in const.MACHINE_IDS.values():
         jitai = Jitai(id, logger)
+        jitai()
         if jitai.check_ema_updates():
             logger.info("machine id: {} will be intervened.".format(jitai.user.terminal_id))
             jitai()
