@@ -1,3 +1,7 @@
 .idea
 
+jitai/data/*
+
+weather/weather_data_
 weather/weather_data
+
