@@ -1,7 +1,7 @@
 import urllib
 import json
 import sys
-from jitai.config import const
+from config import const
 
 
 def get_weather_info(city="神戸"):

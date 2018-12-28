@@ -3,7 +3,7 @@ import sys
 
 import requests
 
-from jitai.config import const
+from config import const
 
 
 def access_api(logger, url, method="get", headers="", data=""):

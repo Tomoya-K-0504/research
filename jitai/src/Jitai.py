@@ -8,13 +8,13 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from jitai.config import const
+from config import const
 from jitai.src.User import User
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-from jitai.config import logger as logger_file
+from config import logger as logger_file
 from jitai.src.utils import access_api, get_token
 from jitai.src.Intervene import Intervene
 from jitai.src.EmaRecorder import EmaRecorder
