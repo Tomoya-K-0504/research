@@ -47,7 +47,9 @@ class Jitai(ABC):
             # トークンの取得
             token = get_token(self.logger)
 
-            intervene(message_label, token)
+            delay_day = 0
+            delay_hour = 0
+            intervene(message_label, token, delay_day, delay_hour)
 
     def _load_prev_ema_date(self):
         path = Path(const.DATA_DIR / self.user.terminal_id / "prev_ema_date.txt")
