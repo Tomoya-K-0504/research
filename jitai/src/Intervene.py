@@ -32,8 +32,8 @@ class Intervene:
         header["Authorization"] = "Bearer: " + token
 
         payload = self._body_json(
-            const.INTER_MSG[message_label]["title"],
-            const.INTER_MSG[message_label]["body"],
+            const.INTERRUPT_MSG[message_label]["title"],
+            const.INTERRUPT_MSG[message_label]["body"],
             (datetime.today()+timedelta(days=delay_day)+timedelta(hours=delay_hour)).strftime("%Y%m%d%H%M"),
         )
         url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["interrupt"] / self.user.terminal_id

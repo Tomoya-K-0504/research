@@ -29,7 +29,8 @@ class EmaRecorder:
         self.to_date = ""
         self.save_df = False
 
-    def __call__(self, from_date="", to_date="", save_df=False, *args, **kwargs):
+    def __call__(self, from_date=datetime.today().date().strftime('%Y%m%d'),
+                 to_date=datetime.today().date().strftime('%Y%m%d'), save_df=False, *args, **kwargs):
         self.from_date = from_date
         self.to_date = to_date
         self.save_df = save_df
@@ -40,7 +41,7 @@ class EmaRecorder:
             df = pd.concat(df_list, axis=0)
             # timeout以外のとき
             if csv_name in ["answer", "interrupt"]:
-                df = df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
+                df = df.astype({"start": datetime, "end": datetime, "question_number": int})
             if self.save_df:
                 df.to_csv(self.data_dir / f"{csv_name}.csv")
         else:
@@ -71,12 +72,16 @@ class EmaRecorder:
         timeout_list = []
         for one_line in content_lines:
             if "回答完了" in one_line:
-                answer_list.append(pd.DataFrame(columns=df_columns))
+                df = pd.DataFrame(columns=df_columns)
+                event = one_line.split(",")[3]
+                answer_list.append(df)
                 answer_flag = True
                 interrupt_flag = False
                 continue
             elif "中断" in one_line:
-                interrupt_list.append(pd.DataFrame(columns=df_columns))
+                df = pd.DataFrame(columns=df_columns)
+                event = one_line.split(",")[3]
+                interrupt_list.append(df)
                 answer_flag = False
                 interrupt_flag = True
                 continue
@@ -90,11 +95,15 @@ class EmaRecorder:
             # 中断したデータである場合
             if interrupt_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(interrupt_list)-1])
+                df = df.T
+                df["event"] = event
                 interrupt_list[-1] = pd.concat([interrupt_list[-1], df.T], axis=0)
             # 回答完了のデータである場合
             elif answer_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(answer_list)-1])
-                answer_list[-1] = pd.concat([answer_list[-1], df.T], axis=0)
+                df = df.T
+                df["event"] = event
+                answer_list[-1] = pd.concat([answer_list[-1], df], axis=0)
             else:
                 continue
 
