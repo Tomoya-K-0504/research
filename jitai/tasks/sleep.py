@@ -37,7 +37,7 @@ class Sleep(Jitai):
         logic = SleepLogic(self.logger)
         intervene = Intervene(self.logger, self.user)
 
-        answer_df, interrupt_df, timeout_df = self.ema_recorder()
+        answer_df, interrupt_df, timeout_df = self.ema_recorder(from_date="", to_date="")
 
         message_label = logic(answer_df, interrupt_df)
 
@@ -71,10 +71,18 @@ class Sleep(Jitai):
             sent_flag = False
 
         # 今日の更新分をとってくる
-        answer_df, interrupt_df, timeout_df = self.ema_recorder()
+        answer_df, interrupt_df, timeout_df = self.ema_recorder(from_date=(today-timedelta(days=1)).date().strftime('%Y%m%d'))
 
-        # まだ介入しておらず、sleepのEMAをしていない場合は, 介入を行うのでTrue
-        if (not sent_flag) and answer_df["event"].values[-1] not in ["sleep", "就寝"]:
+        # EMAが昨日今日で１件もない
+        if not len(answer_df):
+            self.logger.info("No EMA data exists in yesterday and today")
+            return False
+
+        # 6時間前までのデータにする
+        answer_df = answer_df[answer_df["end"] > datetime.now() - timedelta(hours=6)]
+
+        # answer_dfが0件か、まだ介入しておらず、sleepのEMAをしていない場合は, 介入を行うのでTrue
+        if not len(answer_df) or ((not sent_flag) and answer_df["event"].values[-1] not in ["sleep", "就寝"]):
             self.logger.info("Now is after {} and EMA when sleep hasn't completed, will send notification".format(sleep_time))
             return True
 

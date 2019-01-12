@@ -41,7 +41,9 @@ class EmaRecorder:
             df = pd.concat(df_list, axis=0)
             # timeout以外のとき
             if csv_name in ["answer", "interrupt"]:
-                df = df.astype({"start": datetime, "end": datetime, "question_number": int})
+                df["start"] = pd.to_datetime(df['start'])
+                df["end"] = pd.to_datetime(df['end'])
+                df = df.astype({"question_number": int, "question": str})
             if self.save_df:
                 df.to_csv(self.data_dir / f"{csv_name}.csv")
         else:
@@ -97,7 +99,7 @@ class EmaRecorder:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(interrupt_list)-1])
                 df = df.T
                 df["event"] = event
-                interrupt_list[-1] = pd.concat([interrupt_list[-1], df.T], axis=0)
+                interrupt_list[-1] = pd.concat([interrupt_list[-1], df], axis=0)
             # 回答完了のデータである場合
             elif answer_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(answer_list)-1])
