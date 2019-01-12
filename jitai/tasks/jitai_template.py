@@ -18,19 +18,7 @@ class EveryMinute(Jitai):
 
     def __call__(self, *args, **kwargs) -> None:
         logic = TemplateLogic(self.logger)
-        intervene = Intervene(self.logger, self.user)
-
-        answer_df, interrupt_df, timeout_df = self.ema_recorder()
-
-        message_label = logic(answer_df, interrupt_df)
-
-        if message_label:
-            # トークンの取得
-            token = get_token(self.logger)
-
-            delay_day = 0
-            delay_hour = 0
-            intervene(message_label, token, delay_day, delay_hour)
+        super.__call__(logic=logic)
 
     # 読み込み方と初回の挙動を記述
     def _load_prev_ema(self) -> datetime:
@@ -43,12 +31,6 @@ class EveryMinute(Jitai):
             return datetime.today() - timedelta(days=30)
 
     def check_ema(self) -> bool:
-        # 前回の更新分をとってくる
-        # if Path(const.DATA_DIR / self.user.terminal_id / "answer.csv").exists():
-        #     df = pd.read_csv(const.DATA_DIR / self.user.terminal_id / "answer.csv", index_col=0)
-        # else:
-        #     df = pd.DataFrame()
-
         self.prev_ema_date = self._load_prev_ema()
 
         # 今回の更新分をとってくる
@@ -75,6 +57,8 @@ class TemplateLogic(Logic):
         super(TemplateLogic, self).__init__(logger)
 
     def __call__(self, answer_df, interrupt_df, *args, **kwargs) -> str:
+        # 以下を変更する. 返り値はconst.pyのINTERRUPT_MSGのkey名
+
         index_list = list(set(answer_df.index))
 
         # 土日かつ天気がいい場合、お出かけしましょうのメッセージ

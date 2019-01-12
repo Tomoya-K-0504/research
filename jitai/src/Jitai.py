@@ -37,8 +37,19 @@ class Jitai(ABC):
 
     # 介入を行うときの処理を記述
     @abstractmethod
-    def __call__(self, *args, **kwargs) -> None:
-        return None
+    def __call__(self, logic, delay_day=0, delay_hour=0, *args, **kwargs) -> None:
+        logic = logic if logic else Logic(self.logger)
+        intervene = Intervene(self.logger, self.user)
+
+        answer_df, interrupt_df, timeout_df = self.ema_recorder(from_date="", to_date="")
+
+        message_label = logic(answer_df, interrupt_df)
+
+        if message_label:
+            # トークンの取得
+            token = get_token(self.logger)
+
+            intervene(message_label, token, delay_day, delay_hour)
 
     # 前のEMAの読み込み方を記述.
     @abstractmethod

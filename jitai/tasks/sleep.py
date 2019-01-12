@@ -1,30 +1,12 @@
-from datetime import datetime
-from pathlib import Path
-
-from jitai.config import const
-from jitai.config import logger as logger_file
-from jitai.src.Jitai import Jitai
-from abc import ABC
-from abc import abstractmethod
-
-import re
-import sys
-import time
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from jitai.config import const
-from jitai.src.User import User
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-
 from jitai.config import logger as logger_file
-from jitai.src.utils import access_api, get_token
 from jitai.src.Intervene import Intervene
-from jitai.src.EmaRecorder import EmaRecorder
+from jitai.src.Jitai import Jitai
 from jitai.src.Logic import Logic
+from jitai.src.utils import get_token
 
 
 class Sleep(Jitai):
@@ -32,22 +14,10 @@ class Sleep(Jitai):
         super(Sleep, self).__init__(user_info, logger, prev_ema_file)
         self.time_to_sleep = datetime.strptime(user_info["time_to_sleep"], "%H:%M")
 
-
     def __call__(self, *args, **kwargs) -> None:
         logic = SleepLogic(self.logger)
-        intervene = Intervene(self.logger, self.user)
 
-        answer_df, interrupt_df, timeout_df = self.ema_recorder(from_date="", to_date="")
-
-        message_label = logic(answer_df, interrupt_df)
-
-        if message_label:
-            # トークンの取得
-            token = get_token(self.logger)
-
-            delay_day = 0
-            delay_hour = 0
-            intervene(message_label, token, delay_day, delay_hour)
+        super.__call__(logic=logic)
 
     def check_ema(self) -> bool:
         # 前回の更新分をとってくる
@@ -70,7 +40,7 @@ class Sleep(Jitai):
         if self.prev_ema_date < today:
             sent_flag = False
 
-        # 今日の更新分をとってくる
+        # 昨日今日の更新分をとってくる
         answer_df, interrupt_df, timeout_df = self.ema_recorder(from_date=(today-timedelta(days=1)).date().strftime('%Y%m%d'))
 
         # EMAが昨日今日で１件もない
@@ -81,8 +51,8 @@ class Sleep(Jitai):
         # 6時間前までのデータにする
         answer_df = answer_df[answer_df["end"] > datetime.now() - timedelta(hours=6)]
 
-        # answer_dfが0件か、まだ介入しておらず、sleepのEMAをしていない場合は, 介入を行うのでTrue
-        if not len(answer_df) or ((not sent_flag) and answer_df["event"].values[-1] not in ["sleep", "就寝"]):
+        # answer_dfが0件か、まだ介入しておらず、sleepのEMAが存在していない場合は, 介入を行うのでTrue
+        if not len(answer_df) or ((not sent_flag) and "sleep" in list(set(answer_df["event"]))):
             self.logger.info("Now is after {} and EMA when sleep hasn't completed, will send notification".format(sleep_time))
             return True
 
@@ -97,8 +67,8 @@ class Sleep(Jitai):
                 sent_flag = True if latest_record.split(",")[1] == "True" else False
                 return datetime.strptime(latest_record.split(",")[0], '%Y%m%d%H%M%S'), sent_flag
         else:
-            # まだEMAをとっていないときは今日の日付とFalseを返す. 睡眠は一日単位のため、前日以前しか記録がない時点でだめなので.
-            return datetime.today(), False
+            # まだEMAをとっていないときは昨日の日付とFalseを返す. 睡眠は一日単位のため、前日より以前しか記録がない時点でだめなので.
+            return datetime.today() - timedelta(days=1), False
 
 
 class SleepLogic(Logic):
