@@ -28,8 +28,10 @@ from jitai.src.Logic import Logic
 
 
 class Sleep(Jitai):
-    def __init__(self, terminal_id, logger, prev_ema_file):
-        super(Sleep, self).__init__(terminal_id, logger, prev_ema_file)
+    def __init__(self, user_info, logger, prev_ema_file):
+        super(Sleep, self).__init__(user_info, logger, prev_ema_file)
+        self.time_to_sleep = datetime.strptime(user_info["time_to_sleep"], "%H:%M")
+
 
     def __call__(self, *args, **kwargs) -> None:
         logic = SleepLogic(self.logger)
@@ -55,8 +57,8 @@ class Sleep(Jitai):
         #     df = pd.DataFrame()
         today = datetime.today()
 
-        # 23:00を過ぎていない場合は必ず介入しない
-        sleep_time = datetime(today.year, today.month, today.day, 17, 0)
+        # 設定時刻を過ぎていない場合は必ず介入しない
+        sleep_time = datetime(today.year, today.month, today.day, self.time_to_sleep.hour, self.time_to_sleep.minute)
         if datetime.now() < sleep_time:
             self.logger.info("Now is before {}, so will not send notification".format(sleep_time))
             return False
@@ -109,8 +111,8 @@ if __name__ == "__main__":
     logger.info("sleep JITAI started.")
     prev_ema_date_file = "prev_ema_sleep.txt"
 
-    for id in const.MACHINE_IDS:
-        jitai = Sleep(id, logger, prev_ema_date_file)
+    for index, user_info in const.USER_LIST.iterrows():
+        jitai = Sleep(user_info, logger, prev_ema_date_file)
         # emaの更新があり、かつ設定睡眠時間を過ぎているか確認する. 条件を満たしたときはjitai.prev_ema_dateの更新も行う.
         if jitai.check_ema():
             logger.info("machine id: {} will be intervened.".format(jitai.user.terminal_id))

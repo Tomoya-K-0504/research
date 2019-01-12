@@ -22,8 +22,8 @@ from jitai.src.Logic import Logic
 
 
 class Jitai(ABC):
-    def __init__(self, terminal_id, logger, prev_ema_file):
-        self.user = User(terminal_id)
+    def __init__(self, user_info, logger, prev_ema_file):
+        self.user = User(user_info["terminal_id"])
         self.logger = logger
         self.data_dir = Path(const.DATA_DIR) / self.user.terminal_id
         self.data_dir.mkdir(exist_ok=True, parents=True)

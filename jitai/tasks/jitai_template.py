@@ -125,8 +125,8 @@ if __name__ == "__main__":
     logger.info("every minute JITAI started.")
     prev_ema_file = "prev_ema_date.txt"
 
-    for id in const.MACHINE_IDS.values():
-        jitai = EveryMinute(id, logger, prev_ema_file)
+    for index, user_info in const.USER_LIST.iterrows():
+        jitai = EveryMinute(user_info, logger, prev_ema_file)
         if jitai.check_ema():
             logger.info("machine id: {} will be intervened.".format(jitai.user.terminal_id))
             jitai()
