@@ -1,6 +1,7 @@
 import json
 import sys
 
+from datetime import datetime
 import requests
 
 from jitai.config import const
@@ -33,3 +34,7 @@ def get_token(logger):
     logger.info("got token.")
 
     return token
+
+
+def set_hour_minute(day_date, hour_date):
+    return datetime(day_date.year, day_date.month, day_date.day, hour_date.hour, hour_date.minute)

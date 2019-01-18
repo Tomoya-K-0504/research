@@ -52,9 +52,9 @@ class EveryMinute(Jitai):
         return True
 
 
-class TemplateLogic(Logic):
+class EveryMinuteLogic(Logic):
     def __init__(self, logger):
-        super(TemplateLogic, self).__init__(logger)
+        super(EveryMinuteLogic, self).__init__(logger)
 
     def __call__(self, answer_df, interrupt_df, *args, **kwargs) -> str:
         # 以下を変更する. 返り値はconst.pyのINTERRUPT_MSGのkey名

@@ -42,7 +42,7 @@ class Wake(Jitai):
 
         # EMAが今日１件もない
         if not len(answer_df):
-            self.logger.info("No EMA data exists in today")
+            self.logger.info("No EMA data exists today")
             return False
 
         # 実行している時間までのデータにする
