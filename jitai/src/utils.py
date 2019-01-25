@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 import pandas as pd
 
-from config import const
+from jitai.config import const
 
 
 def access_api(logger, url, method="get", headers="", data=""):

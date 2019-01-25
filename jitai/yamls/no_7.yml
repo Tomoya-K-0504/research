@@ -11,8 +11,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "午前中の強い眠気は、昨夜の睡眠時間が短い可能性があります。\n
-            赤ちゃんの夜泣きや早起きで起こされましたか？\n
-            子どもの睡眠に関係なく、ママのお布団にいる時間を長くできるよう、生活リズムを見直してみましょう。"
+  message: "昨夜は良く眠れませんでしたか？ お布団にいる時間を長くできるよう、生活リズムを見直してみましょう。"
   intervene_time:
     set_time: now

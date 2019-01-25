@@ -1,19 +1,16 @@
 from jitai.events.EventTemplate import EventTemplate
 
-import pandas as pd
-
 
 class Baby(EventTemplate):
     def __init__(self, param, ema, user_info, logger):
         super(Baby, self).__init__(
-            param=param, user_info=user_info, ema=ema, logger=logger
-        )
+            param=param, user_info=user_info, ema=ema, logger=logger)
 
         # ema_contentに関しては特別に定義する.
         self.ema_content = param["ema_content"]
 
         self._init_ema_time()
-        self.ema = ema[ema["event"] == "子どもに関する記録（日中）"]
+        self.ema = ema[(ema["event"] == "子どもに関する記録（日中）") | (ema["event"] == "夜のお世話・夜泣き")]
 
     def _check_time(self):
         pass

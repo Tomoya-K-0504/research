@@ -24,7 +24,7 @@ class TestEventTemplate(TestCase):
         self.ema = pd.read_csv(wake_test_case_dir / "model_test_case.csv", index_col=0)
         self.ema["end"] = pd.to_datetime(self.ema["end"])
 
-        with open(const.PJ_ROOT / "yamls" / "no_test.yml") as f:
+        with open(const.PJ_ROOT / "yamls" / "test.yml") as f:
             self.params = yaml.load(f)
 
         self.user_info = const.USER_LIST.iloc[0]
@@ -105,7 +105,7 @@ class TestEventTemplate(TestCase):
         self.assertEqual(content_notexists_ins.ema.shape[0], pd.DataFrame().shape[0])
 
     def test__depend_condition(self):
-        with open(const.PJ_ROOT / "yamls" / "no_depend_test.yml") as f:
+        with open(const.PJ_ROOT / "yamls" / "depend_test.yml") as f:
             depend_params = yaml.load(f)
         param_depended = depend_params[0]
         param_depend = depend_params[1]

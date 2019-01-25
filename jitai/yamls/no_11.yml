@@ -17,6 +17,6 @@
   exists: false
 - event: Intervene
   intervene_type: active
-  message: "夜間に良く眠れるように、そろそろ赤ちゃんを起こしましょう。"
+  message: "赤ちゃんは起きていますか？ 夜間に良く眠れるように、そろそろ赤ちゃんを起こしましょう。"
   intervene_time:
     set_time: now

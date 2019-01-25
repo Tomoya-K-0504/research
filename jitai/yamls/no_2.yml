@@ -1,4 +1,4 @@
-# No.1の介入
+# No.2の介入
 - condition_name: wake_early_morning
   event: MotherWake
   ema_content: none
@@ -9,7 +9,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "おはようございます。\n
-            早起きを心がけましょう。"
+  message: "おはようございます。朝7時前後に起きられるよう、就寝時刻を見直してみましょう。"
   intervene_time:
     set_time: now

@@ -10,14 +10,14 @@
   exists: true
 - condition_name: baby_not_wake
   event: Baby
-  ema_content: お昼寝の開始
+  ema_content: 子の起床
   ema_time:
     set_time:
-        from: "2:00"
+        from: "0:00"
         to: "8:00"
   exists: false
 - event: Intervene
   intervene_type: active
-  message: "生活リズムを整えるために、8時までには赤ちゃんを起こしましょう。"
+  message: "生活リズムを整えるために、７時頃までには赤ちゃんを起こしましょう。"
   intervene_time:
     set_time: now

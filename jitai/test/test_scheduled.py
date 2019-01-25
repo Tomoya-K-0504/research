@@ -22,7 +22,7 @@ class TestScheduled(TestCase):
         self.ema["end"] = self.ema["end"].map(lambda x: set_hour_minute(datetime.today(), x))
         self.user_info = const.USER_LIST.iloc[0]
 
-        with open(const.PJ_ROOT / "yamls" / "no_scheduled_test.yml") as f:
+        with open(const.PJ_ROOT / "yamls" / "scheduled_test.yml") as f:
             params = yaml.load(f)
         self.sc_true = Scheduled(params[0].copy(), self.ema.copy(), self.user_info, logger_file.logger(const.LOG_DIR))
         false_param = params[0].copy()

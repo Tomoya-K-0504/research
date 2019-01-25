@@ -9,9 +9,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "おはようございます。\n
-            今日は早起きですね。疲れは溜まっていませんか？\n
-            赤ちゃんの早起きすぎを改善するには、赤ちゃんが朝起きたらすぐに対応するのではなく、\n
-            5~10分くらい待たせてから"
+  message: "おはようございます。今日は早起きですね。ママも赤ちゃんも朝７時前後に起きるよう、生活リズムをみなおしてみましょう。"
   intervene_time:
     set_time: now

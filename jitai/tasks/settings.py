@@ -20,6 +20,7 @@ if __name__ == "__main__":
     logger = logger_file.logger(const.LOG_DIR)
 
     params_file = sys.argv[1]
+    # param_files = [p.name for p in Path(const.PJ_ROOT / "yamls").iterdir() if p.name.startswith("n")]
 
     with open(const.PJ_ROOT / "yamls" / params_file) as f:
         params = yaml.load(f)
@@ -36,7 +37,7 @@ if __name__ == "__main__":
         ema, _, _ = ema_recorder(from_date="", to_date="")
         ema = start_end_to_datetime(ema)
 
-        intervene = Intervene(params[-1], user_info, logger, params_file)
+        intervene = Intervene(params[-1], user_info, logger)
 
         # TODO useがfalseのときは、タプルの3要素目にfalseとかを入れる？
 
@@ -54,8 +55,8 @@ if __name__ == "__main__":
                 steps.append((param["condition_name"], event_class, suffix))
         pipeline = Pipeline(steps)
         answer = pipeline.run()
-        if answer and not Path(user_data_dir / params_file[:-4]+".txt").exists():
+        if answer and not Path(user_data_dir / str(params_file[:-4]+".txt")).exists():
             logger.info("condition all true, intervene will occur.")
             intervene()
-            with open(user_data_dir / params_file[:-4]+".txt", "w") as f:
+            with open(user_data_dir / str(params_file[:-4]+".txt"), "w") as f:
                 f.write("")
