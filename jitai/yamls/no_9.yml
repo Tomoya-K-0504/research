@@ -1,0 +1,23 @@
+# No.9の介入
+# 8時に実行するので、介入はnowでよい
+- condition_name: mother_wakeup_early
+  event: MotherWake
+  ema_content: none
+  ema_time:
+    set_time:
+        from: "2:00"
+        to: "8:00"
+  exists: true
+- condition_name: baby_not_wake
+  event: Baby
+  ema_content: お昼寝の開始
+  ema_time:
+    set_time:
+        from: "2:00"
+        to: "8:00"
+  exists: false
+- event: Intervene
+  intervene_type: active
+  message: "生活リズムを整えるために、8時までには赤ちゃんを起こしましょう。"
+  intervene_time:
+    set_time: now

@@ -1,0 +1,32 @@
+# interval_valueは, 2.5時間後のときは 02:30 のように書くこと.
+# リストの最後は必ず介入(event: Intervene)にすること.
+# ""で囲まれているものは、値を""で囲むこと. 時刻を表すときに""が必要.
+
+- condition_name: sth
+  event: [sleep or wake or nap or scheduled or default]
+  ema_content: [none or はつらつとした or 楽しい or 嬉しい or 暗い or 嫌な or 沈んだ or 気がかりな or 不安な or 心配な or 眠い]
+  # noneのとき、つまりEMAが選ぶ時間にあるかないかを見るとき
+  ema_time: [set_time or interval]
+    [from: and to:] or value: "hour:minute"
+    exists: [true or false]
+  # noneでない、つまりEMAのある項目が閾値以上/未満を見るとき
+  threshold: value
+  more_or_less: [more or less]
+  ema_time: [set_time or interval]
+    [from: and to:] or value: "hour:minute"
+    exists: [true or false]
+  # ここからはオプションとして用意. 書かれてなくても動く.
+  # dependは別の条件に左右される場合に記述. 起床の14h後までに就寝がない場合は、depend: wake_nameになる.
+  depend: condition_name_value
+  # useは、conditionの中でもdependの条件としては記述するがEMAを絞る条件としては使用しない場合にfalseにする
+  use: false
+
+- event: Intervene
+  message: sth
+  intervene_time: [set_time or interval]
+    value: set_time_value or now or interval_value
+  # ここからはオプションとして用意. 書かれてなくても動く.
+  # dependは別の条件に左右される場合に記述. 起床の14h後までに就寝がない場合は、depend: wake_nameになる.
+  depend: condition_name_value
+  # useは、conditionの中でもdependの条件としては記述するがEMAを絞る条件としては使用しない場合にfalseにする
+  use: false

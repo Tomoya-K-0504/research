@@ -1,0 +1,18 @@
+# No.1の介入
+- condition_name: scheduled_sleepy
+  event: Scheduled
+  ema_content: 眠い
+  threshold: 80
+  more_or_less: more
+  ema_time:
+    set_time:
+        from: "9:00"
+        to: "13:00"
+  exists: true
+- event: Intervene
+  intervene_type: active
+  message: "午前中の強い眠気は、昨夜の睡眠時間が短い可能性があります。\n
+            赤ちゃんの夜泣きや早起きで起こされましたか？\n
+            子どもの睡眠に関係なく、ママのお布団にいる時間を長くできるよう、生活リズムを見直してみましょう。"
+  intervene_time:
+    set_time: now

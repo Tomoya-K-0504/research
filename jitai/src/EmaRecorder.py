@@ -40,7 +40,11 @@ class EmaRecorder:
             df = pd.concat(df_list, axis=0)
             # timeout以外のとき
             if csv_name in ["answer", "interrupt"]:
-                df = df.astype({"start": datetime, "end": datetime, "question_number": int, "answer": int})
+                df["start"] = pd.to_datetime(df['start'])
+                df["end"] = pd.to_datetime(df['end'])
+                df = df.astype({"question_number": int, "question": str})
+                df = df.reset_index().rename(columns={"index": "q_index"})
+                df = df.applymap(lambda x: str(x).replace("\n", "").replace("\r", ""))
             if self.save_df:
                 df.to_csv(self.data_dir / f"{csv_name}.csv")
         else:
@@ -71,12 +75,16 @@ class EmaRecorder:
         timeout_list = []
         for one_line in content_lines:
             if "回答完了" in one_line:
-                answer_list.append(pd.DataFrame(columns=df_columns))
+                df = pd.DataFrame(columns=df_columns)
+                event = one_line.split(",")[3]
+                answer_list.append(df)
                 answer_flag = True
                 interrupt_flag = False
                 continue
             elif "中断" in one_line:
-                interrupt_list.append(pd.DataFrame(columns=df_columns))
+                df = pd.DataFrame(columns=df_columns)
+                event = one_line.split(",")[3]
+                interrupt_list.append(df)
                 answer_flag = False
                 interrupt_flag = True
                 continue
@@ -90,11 +98,15 @@ class EmaRecorder:
             # 中断したデータである場合
             if interrupt_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(interrupt_list)-1])
-                interrupt_list[-1] = pd.concat([interrupt_list[-1], df.T], axis=0)
+                df = df.T
+                df["event"] = event
+                interrupt_list[-1] = pd.concat([interrupt_list[-1], df], axis=0, sort=True)
             # 回答完了のデータである場合
             elif answer_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(answer_list)-1])
-                answer_list[-1] = pd.concat([answer_list[-1], df.T], axis=0)
+                df = df.T
+                df["event"] = event
+                answer_list[-1] = pd.concat([answer_list[-1], df], axis=0, sort=True)
             else:
                 continue
 

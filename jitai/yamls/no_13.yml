@@ -1,0 +1,15 @@
+# No.3の介入
+# 19時に実行するので、介入はnowでよい
+- condition_name: baby_sleep_late
+  event: BabySleep
+  ema_content: none
+  ema_time:
+    set_time:
+        from: "13:00"
+        to: "19:00"
+  exists: false
+- event: Intervene
+  intervene_type: active
+  message: "赤ちゃんは、20時までには寝かせるようにしましょう。"
+  intervene_time:
+    set_time: now

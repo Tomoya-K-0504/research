@@ -1,7 +1,10 @@
 import json
 import sys
+from pathlib import Path
 
+from datetime import datetime
 import requests
+import pandas as pd
 
 from config import const
 
@@ -33,3 +36,43 @@ def get_token(logger):
     logger.info("got token.")
 
     return token
+
+
+def set_hour_minute(day_date, hour_date):
+    return datetime(day_date.year, day_date.month, day_date.day, hour_date.hour, hour_date.minute)
+
+
+def import_events(class_name):
+    if class_name == "MotherWake":
+        from jitai.events.MotherWake import MotherWake
+        return MotherWake
+    elif class_name == "MotherSleep":
+        from jitai.events.MotherSleep import MotherSleep
+        return MotherSleep
+    if class_name == "Baby":
+        from jitai.events.Baby import Baby
+        return Baby
+    elif class_name == "EventTemplate":
+        from jitai.events.EventTemplate import EventTemplate
+        return EventTemplate
+    elif class_name == "Scheduled":
+        from jitai.events.Scheduled import Scheduled
+        return Scheduled
+    else:
+        raise TypeError("event value should be in ['MotherWake', 'MotherSleep']")
+
+
+def start_end_to_datetime(df):
+    df["start"] = pd.to_datetime(df['start'])
+    df["end"] = pd.to_datetime(df['end'])
+
+    return df
+
+
+def test_setup(ins):
+    wake_test_case_dir = Path(const.PJ_ROOT / "test" / "testcases") / "mother_wake"
+    ins.ema = pd.read_csv(wake_test_case_dir / "new_test_case.csv", index_col=0)
+    ins.ema["end"] = pd.to_datetime(ins.ema["end"])
+    ins.user_info = const.USER_LIST.iloc[0]
+
+    return ins

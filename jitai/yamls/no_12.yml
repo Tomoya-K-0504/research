@@ -1,0 +1,22 @@
+# No.12の介入
+- condition_name: baby_slept
+  event: Baby
+  ema_content: お昼寝の開始
+  ema_time:
+    set_time:
+        from: "11:00"
+        to: "16:00"
+  exists: true
+- condition_name: baby_not_wake
+  event: Baby
+  ema_content: お昼寝の終了
+  ema_time:
+    interval:
+        value: "03:00"
+  depend: baby_slept
+  exists: false
+- event: Intervene
+  intervene_type: active
+  message: "夜間に良く眠れるように、そろそろ赤ちゃんを起こしましょう。"
+  intervene_time:
+    set_time: now
