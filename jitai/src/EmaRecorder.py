@@ -1,20 +1,9 @@
-import re
-import sys
-import time
-import json
-from datetime import timedelta, datetime
 from pathlib import Path
 
-from jitai.config import const
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-
-
-
+from jitai.config import const
 from jitai.config import logger as logger_file
-from jitai.src.utils import access_api, get_token
-from jitai.src.Logic import Logic
+from jitai.src.utils import access_api
 
 
 class EmaRecorder:

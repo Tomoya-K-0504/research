@@ -1,11 +1,8 @@
 from abc import ABC
-import pandas as pd
 from datetime import datetime, timedelta
 
-from jitai.src.User import User
-from jitai.src.EmaRecorder import EmaRecorder
+import pandas as pd
 from jitai.src.utils import set_hour_minute
-from jitai.src.utils import import_events, start_end_to_datetime
 
 
 class EventTemplate(ABC):

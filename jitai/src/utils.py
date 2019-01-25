@@ -1,11 +1,10 @@
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
-from datetime import datetime
-import requests
 import pandas as pd
-
+import requests
 from jitai.config import const
 
 

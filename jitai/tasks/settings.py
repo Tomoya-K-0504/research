@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-import pandas as pd
 import yaml
 from jitai.config import const
 from jitai.config import logger as logger_file
@@ -10,7 +9,6 @@ from jitai.src.EmaRecorder import EmaRecorder
 from jitai.src.Pipeline import Pipeline
 from jitai.src.User import User
 from jitai.src.utils import import_events, start_end_to_datetime
-
 
 if __name__ == "__main__":
 
