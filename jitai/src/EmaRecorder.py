@@ -29,8 +29,7 @@ class EmaRecorder:
         self.to_date = ""
         self.save_df = False
 
-    def __call__(self, from_date=datetime.today().date().strftime('%Y%m%d'),
-                 to_date=datetime.today().date().strftime('%Y%m%d'), save_df=False, *args, **kwargs):
+    def __call__(self, from_date="", to_date="", save_df=False, *args, **kwargs):
         self.from_date = from_date
         self.to_date = to_date
         self.save_df = save_df
@@ -44,6 +43,8 @@ class EmaRecorder:
                 df["start"] = pd.to_datetime(df['start'])
                 df["end"] = pd.to_datetime(df['end'])
                 df = df.astype({"question_number": int, "question": str})
+                df = df.reset_index().rename(columns={"index": "q_index"})
+                df = df.applymap(lambda x: str(x).replace("\n", "").replace("\r", ""))
             if self.save_df:
                 df.to_csv(self.data_dir / f"{csv_name}.csv")
         else:
@@ -99,13 +100,13 @@ class EmaRecorder:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(interrupt_list)-1])
                 df = df.T
                 df["event"] = event
-                interrupt_list[-1] = pd.concat([interrupt_list[-1], df], axis=0)
+                interrupt_list[-1] = pd.concat([interrupt_list[-1], df], axis=0, sort=True)
             # 回答完了のデータである場合
             elif answer_flag:
                 df = pd.DataFrame(one_line.split(","), index=df_columns, columns=[len(answer_list)-1])
                 df = df.T
                 df["event"] = event
-                answer_list[-1] = pd.concat([answer_list[-1], df], axis=0)
+                answer_list[-1] = pd.concat([answer_list[-1], df], axis=0, sort=True)
             else:
                 continue
 

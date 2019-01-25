@@ -1,0 +1,14 @@
+# No.10の介入
+- condition_name: mother_wake_late
+  event: MotherWake
+  ema_content: none
+  ema_time:
+    set_time:
+        from: "8:00"
+        to: "11:00"
+  exists: true
+- event: Intervene
+  intervene_type: active
+  message: "生活リズムを整えるために、赤ちゃんをすぐに起こしましょう。"
+  intervene_time:
+    set_time: now

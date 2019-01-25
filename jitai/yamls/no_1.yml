@@ -1,0 +1,17 @@
+# No.1の介入
+- condition_name: wake_early_morning
+  event: MotherWake
+  ema_content: none
+  ema_time:
+    set_time:
+        from: "2:00"
+        to: "5:00"
+  exists: true
+- event: Intervene
+  intervene_type: active
+  message: "おはようございます。\n
+            今日は早起きですね。疲れは溜まっていませんか？\n
+            赤ちゃんの早起きすぎを改善するには、赤ちゃんが朝起きたらすぐに対応するのではなく、\n
+            5~10分くらい待たせてから"
+  intervene_time:
+    set_time: now

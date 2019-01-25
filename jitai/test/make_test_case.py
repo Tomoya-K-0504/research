@@ -6,9 +6,8 @@ from pathlib import Path
 
 
 logger = logger_file.logger(const.LOG_DIR)
-prev_ema_file = "prev_ema_sleep.txt"
 
-sleep_test_case_dir = Path("testcases") / "sleep"
+sleep_test_case_dir = Path("testcases") / "mother_wake"
 sleep_test_case_dir.mkdir(exist_ok=True, parents=True)
 
 # df, _, _ = Sleep(const.USER_LIST.iloc[2, :], logger, prev_ema_file).ema_recorder(from_date="", to_date="")

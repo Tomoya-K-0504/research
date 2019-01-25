@@ -1,0 +1,26 @@
+# No.6の介入
+# 昼寝時に就寝を押してしまうことを考慮して15:00~20:00の間で就寝を検知している.
+# 22時に実行するので、介入はnowでよい
+- condition_name: wake_early_morning
+  event: MotherWake
+  ema_content: none
+  ema_time:
+    set_time:
+        from: "5:00"
+        to: "13:00"
+  exists: true
+- condition_name: 14_awake_interval
+  event: MotherSleep
+  ema_content: none
+  ema_time:
+    interval:
+        value: "14:00"
+  exists: true
+  depend: wake_early_morning
+- event: Intervene
+  message: "あなたの体は、夜の睡眠に向けて準備を進めています。\n
+            24時までにお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
+  intervene_time:
+    interval:
+      value: "14:00"
+  depend: wake_early_morning

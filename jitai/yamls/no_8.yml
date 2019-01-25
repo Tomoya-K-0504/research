@@ -1,0 +1,19 @@
+# No.1の介入
+- condition_name: scheduled_sleepy
+  event: Scheduled
+  ema_content: 眠い
+  threshold: 80
+  more_or_less: more
+  ema_time:
+    set_time:
+        from: "13:00"
+        to: "15:00"
+  exists: true
+- event: Intervene
+  intervene_type: active
+  message: "午後12時~15時は大人も眠くなる時間帯です。\n
+            この時間帯のどこかで、ママもお昼寝をしてみましょう。\n
+            ちなみに、大人の場合、長すぎるお昼寝は夜の睡眠の質を低下させます。\n
+            タイマーなどを使って30分以内に起きるようにしましょう。"
+  intervene_time:
+    set_time: now
