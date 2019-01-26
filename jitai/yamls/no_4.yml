@@ -19,6 +19,6 @@
   exists: false
 - event: Intervene
   intervene_type: active
-  message: "23時までにお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
+  message: "ママは、23時までにお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
   intervene_time:
     set_time: now

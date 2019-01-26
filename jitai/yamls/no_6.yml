@@ -18,6 +18,6 @@
   exists: false
   depend: wake_early_morning
 - event: Intervene
-  message: "これから約２時間後にお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
+  message: "ママは、こらから約２時間後までにはお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
   intervene_time:
     set_time: now

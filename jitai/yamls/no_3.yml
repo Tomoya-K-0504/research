@@ -18,7 +18,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "あなたの体は、夜の睡眠に向けて準備を進めています。\n
-            24時までにお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
+  message: "ママは、22時までにお布団に入れるように、夜の就寝までのスケジュールを確認してみましょう。"
   intervene_time:
     set_time: now

@@ -9,6 +9,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "生活リズムを整えるために、７時頃までには赤ちゃんを起こしましょう。"
+  message: "赤ちゃんの生活リズムを整えるために、朝７時頃までには赤ちゃんを起こしましょう。"
   intervene_time:
     set_time: now

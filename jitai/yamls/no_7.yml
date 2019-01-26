@@ -11,6 +11,6 @@
   exists: true
 - event: Intervene
   intervene_type: active
-  message: "昨夜は良く眠れませんでしたか？ お布団にいる時間を長くできるよう、生活リズムを見直してみましょう。"
+  message: "昨夜、ママは良く眠れませんでしたか？ママは、お布団にいる時間を長くできるよう、生活リズムを見直してみましょう。"
   intervene_time:
     set_time: now
