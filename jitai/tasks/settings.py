@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from datetime import datetime
 
 import yaml
 from jitai.config import const
@@ -27,9 +28,21 @@ if __name__ == "__main__":
 
         # 初めてEMA取得を行う場合にデータ保存フォルダを作成
         user_data_dir = const.DATA_DIR / user_info["terminal_id"]
-        Path(user_data_dir).mkdir(exist_ok=True)
+        Path(user_data_dir / "ema_history").mkdir(exist_ok=True, parents=True)
+        Path(user_data_dir / "intervene_history").mkdir(exist_ok=True, parents=True)
 
         steps = []
+
+        # 前回EMAを取得した時間を取得する.
+        if Path(user_data_dir / "ema_history" / str(params_file[:-4]+".txt")).exists():
+            with open(user_data_dir / "ema_history" / str(params_file[:-4]+".txt"), "r") as f:
+                last_ema_time = f.readlines()[-2]
+        else:
+            last_ema_time = ""
+
+        # 今回のEMAを記録する.
+        with open(user_data_dir / "ema_history" / str(params_file[:-4] + ".txt"), "a") as f:
+            f.write(datetime.today().strptime("%Y%m%d%H%M") + "\n")
 
         ema_recorder = EmaRecorder(logger, User(user_info["terminal_id"]))
         ema, _, _ = ema_recorder(from_date="", to_date="")
@@ -53,8 +66,8 @@ if __name__ == "__main__":
                 steps.append((param["condition_name"], event_class, suffix))
         pipeline = Pipeline(steps)
         answer = pipeline.run()
-        if answer and not Path(user_data_dir / str(params_file[:-4]+".txt")).exists():
+        if answer and not Path(user_data_dir / "intervene_history" / str(params_file[:-4]+".txt")).exists():
             logger.info("condition all true, intervene will occur.")
             intervene()
-            with open(user_data_dir / str(params_file[:-4]+".txt"), "w") as f:
+            with open(user_data_dir / "intervene_history" / str(params_file[:-4]+".txt"), "w") as f:
                 f.write("")
