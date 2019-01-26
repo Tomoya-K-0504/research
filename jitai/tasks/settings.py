@@ -25,27 +25,32 @@ if __name__ == "__main__":
         params = yaml.load(f)
 
     for index, user_info in const.USER_LIST.iterrows():
-
-        # 初めてEMA取得を行う場合にデータ保存フォルダを作成
+        # 初めてEMA取得を行う
+        # 場合にデータ保存フォルダを作成
         user_data_dir = const.DATA_DIR / user_info["terminal_id"]
         Path(user_data_dir / "ema_history").mkdir(exist_ok=True, parents=True)
-        Path(user_data_dir / "intervene_history").mkdir(exist_ok=True, parents=True)
+        Path(user_data_dir / "intervene_history").mkdir(exist_ok=True)
 
         steps = []
 
         # 前回EMAを取得した時間を取得する.
         if Path(user_data_dir / "ema_history" / str(params_file[:-4]+".txt")).exists():
             with open(user_data_dir / "ema_history" / str(params_file[:-4]+".txt"), "r") as f:
-                last_ema_time = f.readlines()[-2]
+                last_ema_time = f.readlines()[-1]
         else:
             last_ema_time = ""
 
         # 今回のEMAを記録する.
         with open(user_data_dir / "ema_history" / str(params_file[:-4] + ".txt"), "a") as f:
-            f.write(datetime.today().strptime("%Y%m%d%H%M") + "\n")
+            f.write("\n" + datetime.today().strftime("%Y%m%d%H%M%S"))
 
         ema_recorder = EmaRecorder(logger, User(user_info["terminal_id"]))
-        ema, _, _ = ema_recorder(from_date="", to_date="")
+        ema, _, _ = ema_recorder(from_date=last_ema_time, to_date="")
+
+        if ema.empty:
+            logger.info("No EMA updated. JITAI to {} ended.".format(user_info["terminal_id"]))
+            continue
+
         ema = start_end_to_datetime(ema)
 
         intervene = Intervene(params[-1], user_info, logger)
