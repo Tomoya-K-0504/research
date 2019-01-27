@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import datetime, timedelta
 
 import pandas as pd
-from jitai.src.utils import set_hour_minute
+from jitai.src.utils import set_hour_minute, round_to_minute
 
 
 class EventTemplate(ABC):
@@ -25,12 +25,12 @@ class EventTemplate(ABC):
         # 時間に関する設定
         if list(self.ema_time.keys())[0] == "set_time":
             from_ = datetime.strptime(self.ema_time["set_time"]["from"], "%H:%M")
-            self.ema_from_ = set_hour_minute(datetime.today(), from_)
+            self.ema_from_ = set_hour_minute(round_to_minute(datetime.today()), from_)
             to = datetime.strptime(self.ema_time["set_time"]["to"], "%H:%M")
-            self.ema_to = set_hour_minute(datetime.today(), to)
+            self.ema_to = set_hour_minute(round_to_minute(datetime.today()), to)
         if list(self.ema_time.keys())[0] == "interval":
             t = datetime.strptime(self.ema_time["interval"]["value"], "%H:%M")
-            self.ema_from_ = datetime.today() - timedelta(hours=t.hour, minutes=t.minute)
+            self.ema_from_ =    datetime.today() - timedelta(hours=t.hour, minutes=t.minute)
             self.ema_to = datetime.today()
 
     def _validate_params(self):
@@ -40,6 +40,11 @@ class EventTemplate(ABC):
         pass
 
     def _extract_about_time(self):
+        now = round_to_minute(datetime.now())
+        # もし実行した時間がema_fromとema_toに含まれていれば、1分ごとに取るロジックで通る
+        if self.ema_from_ < now <= self.ema_to:
+            self.ema = self.ema[(self.ema["end"] >= now - timedelta(minutes=1)) & (self.ema["end"] <= now)]
+            return
         self.ema = self.ema[(self.ema["end"] >= self.ema_from_) & (self.ema["end"] <= self.ema_to)]
 
     def _ema_content_not_none(self):

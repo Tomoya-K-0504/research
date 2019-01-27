@@ -38,7 +38,11 @@ def get_token(logger):
 
 
 def set_hour_minute(day_date, hour_date):
-    return datetime(day_date.year, day_date.month, day_date.day, hour_date.hour, hour_date.minute)
+    return day_date.replace(hour=hour_date.hour, minute=hour_date.minute)
+
+
+def round_to_minute(d):
+    return d.replace(second=0, microsecond=0)
 
 
 def import_events(class_name):

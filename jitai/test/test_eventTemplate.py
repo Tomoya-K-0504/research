@@ -59,8 +59,19 @@ class TestEventTemplate(TestCase):
         nonexists_ema = self.ema[~((self.ema["end"] > ema_from) & (self.ema["end"] < ema_to))]
 
         self.et._extract_about_time()
-        self.assertEqual(self.et.ema.shape[0], exists_ema.shape[0])
-        self.assertNotEqual(self.et.ema.shape[0], nonexists_ema.shape[0])
+        now = datetime.now()
+
+        # 16:00~19:00以外にテストを実行するときのテストコード
+        if now.hour < 16 or (now.hour == 19 and now.minute > 0) or now.hour > 19:
+            self.assertEqual(self.et.ema.shape[0], exists_ema.shape[0])
+            self.assertNotEqual(self.et.ema.shape[0], nonexists_ema.shape[0])
+
+        # 18:03に実行するときのテストコード
+        if now.hour == 18 and now.minute == 3:
+            self.assertEqual(self.et.ema.shape[0], exists_ema.shape[0])
+        # 16:00~19:00で18:03以外に実行するときのテストコード
+        elif (16 <= now.hour <= 18) or (now.hour == 19 and now.minute == 0):
+            self.assertEqual(self.et.ema.shape[0], 0)
 
     def test__ema_content_not_none(self):
         """
@@ -165,8 +176,11 @@ class TestEventTemplate(TestCase):
         exists_false_ins = init_event_template(exists_false_ins)
         self.ema["end"] = self.ema["end"].map(lambda x: set_hour_minute(datetime.today(), x))
 
-        self.assertTrue(exists_true_ins.run())
-        self.assertFalse(exists_false_ins.run())
+        now = datetime.now()
+        # 16:00~19:00以外にテストを実行するときのテストコード
+        if now.hour < 16 or (now.hour == 19 and now.minute > 0) or now.hour > 19:
+            self.assertTrue(exists_true_ins.run())
+            self.assertFalse(exists_false_ins.run())
 
     def test_copy(self):
         self.assertIsInstance(self.et.copy(), EventTemplate)
