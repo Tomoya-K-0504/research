@@ -9,6 +9,6 @@
   exists: false
 - event: Intervene
   intervene_type: active
-  message: "20時頃にはお布団で寝かせられるように、生活スケジュールを立てましょう。"
+  message: "赤ちゃんを20時頃にはお布団で寝かせられるように、生活スケジュールを立てましょう。"
   intervene_time:
     set_time: now

@@ -1,6 +1,6 @@
 import json
 import sys
-from config import const
+from jitai.config import const
 import re
 import urllib
 from pathlib import Path

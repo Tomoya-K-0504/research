@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 from datetime import datetime
-import pd
+import pandas as pd
 
 import yaml
 from jitai.config import const
@@ -35,11 +35,9 @@ if __name__ == "__main__":
         ema = pd.read_csv(user_data_dir / "ema.csv")
         ema = start_end_to_datetime(ema)
 
-        intervene = Intervene(params[-1], user_info, logger)
-
         # TODO useがfalseのときは、タプルの3要素目にfalseとかを入れる？
 
-        for param in params[:-1]:
+        for param in params:
             suffix = ""
             if "use" not in param.keys():
                 EventClass = import_events(param["event"])
@@ -49,12 +47,13 @@ if __name__ == "__main__":
                     suffix = [s[1] for s in steps if s[0] == param["depend"]][0]
                 if "use" in param.keys():
                     suffix = False
+                step_name = param["condition_name"] if "condition_name" in param.keys() else "intervene"
 
-                steps.append((param["condition_name"], event_class, suffix))
+                steps.append((step_name, event_class, suffix))
         pipeline = Pipeline(steps)
         answer = pipeline.run()
         if answer and not Path(user_data_dir / "intervene_history" / str(params_file[:-4]+".txt")).exists():
             logger.info("condition all true, intervene will occur.")
-            intervene()
+            steps[-1][1]()
             with open(user_data_dir / "intervene_history" / str(params_file[:-4]+".txt"), "w") as f:
                 f.write("")

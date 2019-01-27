@@ -12,6 +12,7 @@ MAILTO=root
 # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
 # |  |  |  |  |
 # *  *  *  *  * user-name  command to be executed
+# 標準出力とエラー出力を破棄する場合は, &> /dev/null で、標準エラー出力のみの場合は、 2>logs/logfile とする.
 * *    * * *	root	cd /home/jitai/research/jitai; /root/jitai/anaconda3/envs/jitai/bin/python tasks/fetch_ema.py &> logs/fetch.log;
 * *    * * *	root	cd /home/jitai/research/jitai; /root/jitai/anaconda3/envs/jitai/bin/python tasks/settings.py no_1.yml &> logs/no_1.log;
 * *    * * *	root	cd /home/jitai/research/jitai; /root/jitai/anaconda3/envs/jitai/bin/python tasks/settings.py no_2.yml &> logs/no_2.log;

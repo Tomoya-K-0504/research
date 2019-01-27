@@ -49,6 +49,8 @@ class TestEventTemplate(TestCase):
         """
         # EMAの日付をすべて今日にして、時間で切れるか確かめる. 18:00のデータが存在する.
         self.ema["end"] = self.ema["end"].map(lambda x: set_hour_minute(datetime.today(), x))
+        # 昨日も含んでみる
+        # self.ema.loc[:3, "end"] = self.ema.loc[:3, "end"] - timedelta(days=1)
         ema_from = set_hour_minute(datetime.today(), datetime.strptime("16:00", "%H:%M"))
         ema_to = set_hour_minute(datetime.today(), datetime.strptime("19:00", "%H:%M"))
         self.et.ema_from_ = ema_from

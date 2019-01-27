@@ -57,6 +57,12 @@ def import_events(class_name):
     elif class_name == "Scheduled":
         from jitai.events.Scheduled import Scheduled
         return Scheduled
+    elif class_name == "Weather":
+        from jitai.events.Weather import Weather
+        return Weather
+    elif class_name == "Intervene":
+        from jitai.events.Intervene import Intervene
+        return Intervene
     else:
         raise TypeError("event value should be in ['MotherWake', 'MotherSleep']")
 
@@ -68,9 +74,12 @@ def start_end_to_datetime(df):
     return df
 
 
-def test_setup(ins):
+def test_setup(ins, terminal_id=""):
     wake_test_case_dir = Path(const.PJ_ROOT / "test" / "testcases") / "mother_wake"
-    ins.ema = pd.read_csv(wake_test_case_dir / "new_test_case.csv", index_col=0)
+    if terminal_id:
+        ins.ema = pd.read_csv(const.DATA_DIR / terminal_id / "ema.csv")
+    else:
+        ins.ema = pd.read_csv(wake_test_case_dir / "new_test_case.csv", index_col=0)
     ins.ema["end"] = pd.to_datetime(ins.ema["end"])
     ins.user_info = const.USER_LIST.iloc[0]
 

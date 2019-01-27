@@ -10,7 +10,7 @@ class Pipeline:
 
     def run(self):
         res = []
-        for cond_name, event, suffix in self.steps:
+        for cond_name, event, suffix in self.steps[:-1]:
             if suffix == False:
                 continue
 
