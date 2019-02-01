@@ -57,10 +57,13 @@ class Intervene:
             if not self._depend_condition():
                 return False
 
+        res = self.intervene()
+
+        self.logger.info(res)
+
+    def intervene(self):
+
         token = get_token(self.logger)
-
-        # 時間に関する設定
-
 
         # headerを作成する
         header = const.HEADERS
@@ -74,7 +77,7 @@ class Intervene:
         url = Path(const.BASE_URL) / const.API_URL / const.MODE_URL["interrupt"] / self.user_info["terminal_id"]
         res = access_api(self.logger, "https://" + str(url), method="post", headers=const.HEADERS, data=payload)
 
-        self.logger.info(res)
+        return res
 
     def add_depend_class(self, depend_class):
         self.depend_class = depend_class

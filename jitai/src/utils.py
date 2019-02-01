@@ -21,7 +21,7 @@ def access_api(logger, url, method="get", headers="", data=""):
         logger.error("bad method sent to access_api function: {method}")
         sys.exit(1)
 
-    logger.info("got response.")
+    logger.info("Got response.")
 
     return response
 
@@ -32,7 +32,7 @@ def get_token(logger):
     response = access_api(logger, f"https://{const.BASE_URL}/{const.API_URL}/login", "post", const.HEADERS, body)
     token = json.loads(response.content.decode("utf-8"))["token"]
 
-    logger.info("got token.")
+    logger.info("Got token.")
 
     return token
 
